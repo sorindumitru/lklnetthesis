@@ -1,0 +1,51 @@
+\chapter{Application Architecutre}
+\label{chapter:arch}
+
+\section{Linux Kernel Library}
+\label{sec:lkl}
+
+\subsection{Network driver}
+\label{sec:net-driver}
+
+The network driver is split into two separate parts: a LKL part and a native part.
+
+The lkl part takes care of the interaction with the lkl kernel. It encapsulates
+and decapsulates the packets for the kernel(encapsulates them in a struct sk_buff)
+and the native part.
+
+The native part uses native syscalls to assure communication between two devices.
+It can use any inter-process communication primitives like pipes, mail queues, sockets
+, etc... For this implementation I have chosen to use sockets so that it will be possible
+to connect two devices on different computers.
+
+\fig[scale=0.5]{src/img/driver.pdf}{img:eth-driver}{Network driver}
+
+\section{LKL-net}
+\label{sec:lkl-net}
+
+\fig[scale=0.5]{src/img/arch.png}{img:lkl-net-arch}{LKL-net architecture}
+
+\section{Devices}
+\label{sec:devices}
+
+\subsection{Router}
+\label{sub-sec:router}
+
+\subsection{Switch}
+\label{sub-sec:switch}
+
+\subsection{Firewall}
+\label{sub-sec:firewall}
+
+\subsection{NAT}
+\label{sub-sec:nat}
+
+\subsection{Auxiliar devices}
+\label{sub-sec:auxdev}
+
+\subsubsection{Hub}
+
+\subsubsection{Bridge}
+
+\section{Hypervisor}
+\label{sub-sec:hypervisor}

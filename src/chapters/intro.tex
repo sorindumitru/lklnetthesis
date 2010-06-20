@@ -1,0 +1,66 @@
+\chapter{Introduction}
+\label{chapter:intro}
+
+\section{Project Description}
+\label{sec:proj}
+
+\project
+
+\subsection{Project Scope}
+\label{sub-sec:proj-scope}
+
+educational
+
+research
+
+\subsection{Project Objectives}
+\label{sub-sec:proj-objectives}
+
+The system shouldn't be isolated from the outside world. It would be advantageous to be able
+to include applications outside the LKL ecosystem;
+
+\subsection{Related Work}
+\label{sub-sec:proj-related}
+
+\subsubsection{Dynamips}
+
+Dynamips started initialy as an Cisco 7200 emulator, but it now supports many other
+Cisco platforms (3600, 3700 and 2600). It is an emulator, meaning that the emulated
+devices act like the real devices, but also that is a little bit slow. It's
+homepage \footnote{\url{http://www.ipflow.utc.fr/index.php/Cisco_7200_Simulator}}
+states that it can go up to 1kpps. 
+
+The emulated devices:
+\begin{itemize}
+  \item MIPS64 and PowerPC CPUs
+  \item DRAM and SRAM
+  \item Network modules:
+    \begin{itemize}
+      \item NM-1E
+      \item NM-4E
+      \item NM-1ESW
+    \end{itemize}
+  \item Temperature and Voltage sensors
+\end{itemize}
+
+Although the devices in dynamips work exactly like a real Cisco device, there are a few disadvanteges:
+\begin{itemize}
+  \item It requires an IOS image.
+  \item High memory and CPU usage, thus limiting the number of devices that can be emulated on one computer.
+  \item It can only emulate routers, not other devices.
+  \item It can only simulate Cisco devices.
+  \item The device code cannot be modified.
+\end{itemize}
+
+\subsubsection{Packet Tracer}
+
+Packet tracer is a proprietary tool developed by Cisco. It is primary used as a learning tool
+in Cisco Certified Network Assistent courses offered by Cisco.
+Packet tracer is only a simulator and does not run code that runs on the Cisco devices, so
+it is unsuitable for a realistic simulation of complex networks. It is also closed source, so
+the devices cannot be modified.
+
+
+\subsubsection{NS-2}
+Ns(network simulator) is a discrete event network simulator used for networking research.
+\todo{Learn more about NS-2}

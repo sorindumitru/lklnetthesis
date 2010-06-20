@@ -1,0 +1,19 @@
+\chapter{Building the application}
+
+\todo{Try to move Makefile.lkl in Makefile.am and update this}
+
+For a build system I chose GNU Autotools. This allows building
+and installing the application with only three well-known commands:
+
+\lstset{language=bash,caption=Build System}
+\begin{lstlisting}
+  make -f Makefil.lkl
+  ./configure
+  make
+  make install
+\end{lstlisting}
+
+The first step is used to build LKL from the linux kernel sources; it
+requires the LKL sources, their location is specified in a variable in
+Makefile.lkl. This step is only required only on the first build or
+when something has changed in the LKL sources.
