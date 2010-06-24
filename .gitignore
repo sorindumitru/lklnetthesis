@@ -2,3 +2,5 @@ thesis.pdf
 thesis.out
 thesis.toc
 *.aux
+*~
+.directory

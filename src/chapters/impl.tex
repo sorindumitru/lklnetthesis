@@ -1,29 +1,139 @@
 \chapter{Implementation}
 \label{chapter:impl}
 
+The linux kernel offers great support for turning an ordinary computer into a network
+device. It allows to modify the routing table through NETLINK sockets, creating
+and destroying virtual bridging interfaces, adding and removing firewall rules through 
+iptables. I used some of these capabilities to implement the devices described in this 
+chapter.
+
 \section{Switch}
-\label{sub-sec:switch-impl}
+\label{sec:switch-impl}
 
-Linux kernel support for bridging
+\subsection{Linux support}
+\label{sub-sec:switch-lin}
 
-My work
+Linux offers support for bridging through virtual interfaces. A bridge interface
+can be create through code, as seen in \ref{lst:cbridgeadd}, or using the bridge-utils
+package:
+\lstset{language=zsh,caption=Adding a bridge interface,label=lst:sbridgeadd}
+\begin{lstlisting}
+  #> brctl add br0
+\end{lstlisting}
+Because the created interface is a virtual one, it cannot be used by itself to receive packats
+from the network. In order to do this, physical interfaces must be added to the bridge. This 
+can be done using brctl:
+\lstset{language=zsh,caption=Adding a bridge interface,label=lst:sportadd}
+\begin{lstlisting}
+  #> brctl addif br0 eth0
+\end{lstlisting}
+where br0 is the name of the virtual interface and eth0 the name of the physical one.
 
-Device tests
+Other features:
+\begin{itemize}
+  \item STP
+  \item Multiple bridge instances
+  \item Firewalling through ebtables
+\end{itemize}
+Of these, only STP support has been implemented in \textbf{\project}.
 
-\lstset{language=C, caption=Add bridge}
+To enable bridgin support in the kernel, the ``networking->802.1d Ethernet Bridging'' option
+must be set. This is done in the kernel configuration that comes with \textbf{\project}.
+
+\subsection{\text{\project} implementation}
+\label{sub-sec:switch-lkl}
+
+The linux kernel offers an interface to configure bridging. This interface is used
+by existing user space applications, so this is the interface we chose for the switch device. 
+It uses the ioctl syscall(lkl_sys_ioctl in LKL):
+\begin{description}
+  \item[SIOCBRADDBR] \hfill \\
+  Is used to create a new bridging virtual inteface. It takes the name of the new interface as parameter.
+  \item[SIOCBRDELBR] \hfill \\
+  Is used to destroy a bridging interface. It takes the name of the new interface as parameter.
+  \item[SIOCBRADDIF] \hfill \\
+  Is used to add a physical interface as a port to the bridge. It takes as parameter a ifreq structure containing
+the interface index of the phyisical interface and the interface name of the bridge.
+  \item[SIOCBRDELIF] \hfill \\
+  Is used to delete a physical interface from the bridge. It takes as parameter a ifreq structure containing
+  \item[SIOCDEVPRIVATE] \hfill \\
+  Is used for the remaining operations: getting information about the interfaces, setting STP on/off and getting information
+about STP.
+\end{description}
+An example of adding a new bridge interface:
+
+\lstset{language=C,caption=Add bridge,label=lst:cbridgeadd}
 \lstinputlisting{src/code/bridge/bridgeadd.c}
+
+\subsection{Device tests}
+\label{sub-sec:switch-tests}
 
 \section{Firewall}
 \label{sub-sec:firewall-impl}
 
-Linux kernel support(iptables)
+\subsection{Linux support}
+\label{sub-sec:firewall-lin}
 
-My work
+IPtables
 
-Device tests
+\subsection{\text{\project} implementation}
+\label{sub-sec:firewall-lkl}
+
+Add rules
+fig. rule structure
+remove rules
+
+\subsection{Device tests}
+\label{sub-sec:firewall-tests}
 
 \section{Bridge}
 
-About tun/tap
+\subsection{Linux support}
+\label{sub-sec:bridge-lin}
 
-about the bridge
+TUN/TAP interfaces are virtual interfaces provided by the kernel. Unlike regular interfaces
+these are handled in software. Packets sent through a TUN/TAP interface are received in
+an userspace program through a file descriptor created upon opening the interface: 
+
+\lstset{language=C,caption=Opening a tun/tap interface,label=lst:tapopen}
+\lstinputlisting{src/code/tap/open.c}
+
+TUN interfaces operates with layer 3 packets, while TAP interfaces operate with layer 
+2 packets such as Ethernet frames. TUN interfaces can be used to create tunnels( Vtun)
+or VPN(OpenVPN); TAP interfaces are used to create virtual interfaces for applications 
+that do virtualization(VirtualBox).
+
+\subsection{\text{\project} implementation}
+\label{sub-sec:bridge-lkl}
+
+One of the objectives of the project was to not isolate the simulated devices from other user space 
+programs. Two possible solutions for this were found:
+\begin{itemize}
+  \item Using raw sockets as a base for an interface.
+  \item Creatinga a new device that uses a TAP interface to interconect a normal application.
+\end{itemize}
+
+At first we tried to use the first approach but we encountered some problems with network loops.
+We have chosen the second approach because of this and because it allows us to have a better visualisation of the packet
+as it traverses the network; the socket can be seen in the same way as an ethernet cable and so it allows
+us to watch the packet on the network.
+
+\fig[scale=0.5]{src/img/bridge.pdf}{img:bridge}{Bridge}
+
+As it can be seen in figure \ref{img:bridge} the bridge has two interfaces; the TAP interface that is used to 
+receive packets from user space programs and a socket interface that is used to connect, through a hub, to 
+a LKL device. Upon receiving a packets it modifies it by adding the total length of it and sends it to a hub 
+through a socket.
+
+\subsection{Device tests}
+\label{sub-sec:bridge-tests}
+
+\section{Hypervisor}
+\label{sec:hypervisor2}
+
+\section{Console and configuration file}
+\label{sec:dev-conf}
+
+FLEX
+
+CONSOLE
