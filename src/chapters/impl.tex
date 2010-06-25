@@ -5,7 +5,7 @@ The linux kernel offers great support for turning an ordinary computer into a ne
 device. It allows to modify the routing table through NETLINK sockets, creating
 and destroying virtual bridging interfaces, adding and removing firewall rules through 
 iptables. I used some of these capabilities to implement the devices described in this 
-chapter.
+chapt	
 
 \section{Switch}
 \label{sec:switch-impl}
@@ -74,14 +74,82 @@ An example of adding a new bridge interface:
 \subsection{Linux support}
 \label{sub-sec:firewall-lin}
 
-IPtables
+IPtables is the user space program used in linux to control the firewall tables from the kernel. It is based
+ont the netfitler project, which was started in 1998 by Rusty Russell. Prior to this, ipchain was used to do
+this task in Linux 2.2 and ipfwadmin in Linux 2.0.
+
+Netfilter is framework for packet mangling. It defines per protocol hooks, which are points in the network code
+where the framework is called. Ipv4 defines 5 such points:
+\begin{itemize}
+  \item PREROUTING. It is called after the packet is received but after sanity checks have been made on it.
+  \item INPUT. It is called if the packet is for this host.
+  \item OUTPUT.	It is called for locally generated packets.
+  \item FORWARD. It is called if the destination of the packet isn't this machine.
+  \item POSTROUTING. It is called before the packets are sent to the network driver.
+\end{itemize}
+The route that the packets take is described in figure \ref{img:netfilter}.
+\fig[scale=0.5]{src/img/netfilter.pdf}{img:netfilter}{Netfilter hooks}
+Tables
+
+Chains
+
+An iptables rule is represented by an ipt_entry structure in the kernel. It contains an ipt_ip structure, information used
+to retrieve the target, a list of ipt_matches structures and a target. The ipt_ip structure contains general information for
+level 3 matching of packets: source and destination address, input and output port, protocol. Ipt_matches allow matching of
+packets based on more parameters than standard rules, for example address type. The target picks the submodule that handles the 
+packet and stores additional data used by the module.
 
 \subsection{\text{\project} implementation}
 \label{sub-sec:firewall-lkl}
 
-Add rules
-fig. rule structure
-remove rules
+Libiptc is the library used by the iptables project to comunicate with netfilter. It allows
+querying the kernel for netfilter rules, and saving changes back to the kernel. The data from
+the kernel comes as one blob:
+\lstset{language=C,caption=Getting firewall rules,label=lst:sgetrule}
+\begin{lstlisting}
+size = sizeof(info);
+getsockopt(socket, IPPROTO_IP, SO_GET_INFO, &info, &size); 
+size = sizeof(ipt_get_entries) + info.size;
+getsockopt(socket, IPPROTO_IP, SO_GET_ENTRIES, buffer, &size);
+\end{lstlisting}
+libitpc parses the entries from it, puts each rule in its chain and stores the chains in an iptc_handle. This allows for a simple way
+of view and working with the rules, because we don't have to parse the blob each time. When we add a new rule
+it is not imediately added to the kernel, instead they are added to the iptc_handle. When we want them to be added to the kernel,
+this is done through iptc_commit which call setsockopt:
+\lstset{language=C,caption=Commiting changes,label=lst:ssetrules}
+\begin{lstlisting}
+struct ipt_replace *replace;
+// add entries from iptc_handle to replace
+setsockopt(socket, IPPROTO_IP, SO_GET_ENTRIES, replace, sizeof(*replace) + replace->size);
+\end{lstlisting}
+We have ported this library to the LKL project so we can use it in the rest of the code. This was mostly done by replacing
+the syscalls from it with lkl syscall( lkl_sys prefix).
+
+The targets used by the filtering module of \text{\project} uses only the standard data. This is one of the simplest targets
+used by iptables; it contains only data about its size and the verdict for the packet( ACCEPT, DROP or DENY).
+
+\begin{description}
+\item[Adding rules] \hfill \\
+Adding rules can be done by taking all the rules from the kernel, creating a 
+new rule, inserting the rule in the blob from the kernel and committing it back
+to the kernel. This is done with the following command:
+\lstset{language=zsh,caption=Adding a rule,label=lst:saddrule}
+\begin{lstlisting}
+filter -A chain [-s saddr -d daddr -i iif -o oif] -j ACCEPT|DROP|DENY
+\end{lstlisting}
+\item[Removing rules] \hfill \\
+Removing a rules is done by specifing the chain and rule number:
+\lstset{language=zsh,caption=Deleting a rule,label=lst:sdelrule}
+\begin{lstlisting}
+filter -D chain rulenumber
+\end{lstlisting}
+\item[Listing rules] \hfill \\
+Rules can be listed for a specified chain or for all the chains if one isn't specified.
+\lstset{language=zsh,caption=List rules,label=lst:slstrule}
+\begin{lstlisting}
+filter -L [chain]
+\end{lstlisting}
+\end{description}
 
 \subsection{Device tests}
 \label{sub-sec:firewall-tests}
