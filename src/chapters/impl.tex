@@ -10,6 +10,8 @@ chapt
 \section{Switch}
 \label{sec:switch-impl}
 
+In the next section a switch is called a bridge, as this the terminology used by the linux kernel.
+
 \subsection{Linux support}
 \label{sub-sec:switch-lin}
 
@@ -89,9 +91,24 @@ where the framework is called. Ipv4 defines 5 such points:
 \end{itemize}
 The route that the packets take is described in figure \ref{img:netfilter}.
 \fig[scale=0.5]{src/img/netfilter.pdf}{img:netfilter}{Netfilter hooks}
-Tables
 
-Chains
+The ip_tables kernel module uses the netfilter framework to define tables that can be used to build firewall rules.
+Each table containes on or more chains the map to the netfilter hooks previously discused. 
+The IPv4 protocol has three tables defined:
+\begin{itemize}
+  \item filter. The filter table is used, as its name implies, to filter packets, it should not be used for packet mangling. The chains
+avaible in this table are INPUT, OUTPUT and FORWARD.
+  \item nat. The nat table is used for network address translation. The chains that are available in this table are PREROUTING,
+ POSTROUTING and OUTPUT
+  \item mangle. The mangle table is used to modify packets, it can be used for example to change the TTL field in
+the IPv4 header. The mangle table can use all five hooks of the IPv4 protocol.
+\end{itemize}
+
+Each chain contains a number of rules. When a packet passes through the netfilter hook coresponding to the chain each rule is checked
+for a match; if a match is found, the action of the rule is applied; if no rule matches the packet, the policy of the chain is applied.
+The predefined chains have a default policy of \textbf{ACCEPT}, meaning that if no rule matches the packet, it is accepted, but this behavior
+can be changed. Users can define new chains; this chains have no policy, instead they return to the calling chain if no rule is matched.
+The jump option(-j CHAIN) can be used to call a user defined chain.
 
 An iptables rule is represented by an ipt_entry structure in the kernel. It contains an ipt_ip structure, information used
 to retrieve the target, a list of ipt_matches structures and a target. The ipt_ip structure contains general information for
@@ -199,9 +216,26 @@ through a socket.
 \section{Hypervisor}
 \label{sec:hypervisor2}
 
+Devices can be started individualy, by giving them a configuration file or no file, in which case the device
+will be empty(no interfaces). After the device is started the user can proceed to issue commands( see \textbf{Appendix} 
+\ref{chapter:commands} for a complete listing of available commands) to configure the device. Starting a large number of
+devices and configuring them can a time-consuming task, so we decided on building a GUI application to visualise and configure
+the topology.
+
 \section{Console and configuration file}
 \label{sec:dev-conf}
 
-FLEX
+Because we don't always want to start with an empty device and wanted to make de application easy to use, we decieded that the
+devices should have configuration, that they could save their current configuration and reopen upon restart. 
 
-CONSOLE
+We used flex \footnote{\url{http://flex.sourceforge.net}} to parse configuration files. The flex acts like a lexicar analyser, 
+parsing the input and transforming them into tokens. Flex is called through the yylex() function to read in a new symbol, and the
+symbol is received through the yytext variabile. Checks are done on the variabile and on the input so the function that reads in 
+the config file acts like a parser. All the configuration variabiles are stored in a config_info_t structure.
+
+A sample configuration for a switch with two ports:
+\lstset{caption=Opening a tun/tap interface,label=lst:tapopen}
+\lstinputlisting{src/code/conf}
+
+Although basic configuration( routing activation, creating virtual bridging interfaces) can be done through the 
+configuration files
