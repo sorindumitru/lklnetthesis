@@ -89,7 +89,7 @@ where the framework is called. Ipv4 defines 5 such points:
   \item FORWARD. It is called if the destination of the packet isn't this machine.
   \item POSTROUTING. It is called before the packets are sent to the network driver.
 \end{itemize}
-The route that the packets take is described in figure \ref{img:netfilter}.
+The route that the packets take is described in \figref{img:netfilter}.
 \fig[scale=0.5]{src/img/netfilter.pdf}{img:netfilter}{Netfilter hooks}
 
 The ip_tables kernel module uses the netfilter framework to define tables that can be used to build firewall rules.
@@ -205,7 +205,7 @@ us to watch the packet on the network.
 
 \fig[scale=0.5]{src/img/bridge.pdf}{img:bridge}{Bridge}
 
-As it can be seen in figure \ref{img:bridge} the bridge has two interfaces; the TAP interface that is used to 
+As it can be seen in \figref{img:bridge} the bridge has two interfaces; the TAP interface that is used to 
 receive packets from user space programs and a socket interface that is used to connect, through a hub, to 
 a LKL device. Upon receiving a packets it modifies it by adding the total length of it and sends it to a hub 
 through a socket.
@@ -217,10 +217,20 @@ through a socket.
 \label{sec:hypervisor2}
 
 Devices can be started individualy, by giving them a configuration file or no file, in which case the device
-will be empty(no interfaces). After the device is started the user can proceed to issue commands( see \textbf{Appendix} 
-\ref{chapter:commands} for a complete listing of available commands) to configure the device. Starting a large number of
+will be empty(no interfaces). After the device is started the user can proceed to issue commands( see \appref{chapter:commands} 
+for a complete listing of available commands) to configure the device. Starting a large number of
 devices and configuring them can a time-consuming task, so we decided on building a GUI application to visualise and configure
-the topology.
+the topology, as well as starting and stoping the devices.
+
+\fig[scale=0.44]{src/img/gui.png}{img:gui}{GUI}
+
+THe GUI was build using the GTK library\footnote{\url{http://www.gtk.org/}}. For the topology we created a new GTK widget
+that allows us to create and place new devices in the topology as well as creating links between them. In order to draw
+the devices on the topology we used the Cairo library, which can be used to draw on GTK widget.
+
+Apart from creating the network topology, the GUI can be used to do some of the configuration of the devices. This is 
+more user-friendly than the command line interface used in the devices, so some user might prefer it. Users can also see
+the saved configuration of the devices.
 
 \section{Console and configuration file}
 \label{sec:dev-conf}
@@ -234,8 +244,37 @@ symbol is received through the yytext variabile. Checks are done on the variabil
 the config file acts like a parser. All the configuration variabiles are stored in a config_info_t structure.
 
 A sample configuration for a switch with two ports:
-\lstset{caption=Opening a tun/tap interface,label=lst:tapopen}
+\lstset{language=inform,caption=Example switch configuration file,label=lst:dconf}
 \lstinputlisting{src/code/conf}
 
+At the top of the configurate general informations about the device can be found. Hostname is the name of the device;
+The ipaddress and the port are the IPv4 address of the machine where the device is started and the port that the device
+uses to communicate with the hub; they are not of much use to the device, but are important for the hypervisor.
+After that comes a list of interfaces.	Each interface contains the information to create a new interface a bring it up.
+The gateway, port and type are used to create a link with a hub; the type field is necesary because the connection between
+to devices can be made through a hub or directly between the devices. 
+
+The switch requires some extra configuration in order to be able to create mutiple bridging virtual interfaces. 
+Under the switch portion multiple defined interfaces can be grouped into a bridging interface.
+
+The hypervisor has a slightly different configuration file:
+\lstset{language=inform,caption=Example hypervisor configuration file,label=lst:hconf}
+\lstinputlisting{src/code/hyperconf}
+This configuration file has a list of the devices from the topology and for each device the information needed by the hypervisor to
+start the device. Each device have a few variables in common, such as the type of the device, their hostname and their position on
+the topology in the gui. LKL devices, such as the switch and the firewall, need a configuration file, so it is specified in the
+config file. The hub needs to know the port on which it listens, so it is given to it.
+
 Although basic configuration( routing activation, creating virtual bridging interfaces) can be done through the 
-configuration files
+configuration files, it was necessary to implement a command line interface(CLI) for the devices to do additional configurations; 
+for example to add a rule to a firewall table or to list the device's interface. We used the readline library, that is used in various
+other console-like applications, the create this CLI. Using it, it was very easy to integrate history and autocomplete in our CLI.
+
+To implement history into the the command line we only needed to inform autocomplete of the inserted commands. This is done through the
+add_history function. After this the complete history of the commands can be browesed using the up and down keys.
+
+Autocompletion is added by modifing a function pointer from libreadline, rl_completion_entry_function. The function to which it points
+is called every time when TAB is pressed. The function then parses the list of avaible commands and sees what possible completions
+can follow. 
+
+The complete list of device commands can be found in \appref{chapter:commands}. Not all of these commands are available in every device.

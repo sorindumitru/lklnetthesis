@@ -1,0 +1,16 @@
+hypervisor {
+	device {
+		type hub;
+		hostname hub1;
+		port 50001;
+		posx 350;
+		posy 400;
+	}
+	device {
+		type router;
+		hostname R2;
+		config tests/test.router/3routers/router.R2;
+		posx 200;
+		posy 500;
+	}
+}
