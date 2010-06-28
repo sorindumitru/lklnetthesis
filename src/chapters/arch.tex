@@ -6,6 +6,8 @@ Just testing \cite{linnetarch}.
 \section{Linux Kernel Library}
 \label{sec:lkl}
 
+\fig[scale=0.5]{src/img/lkl.pdf}{img:lkl}{LKL architecture}
+
 \subsection{Network driver}
 \label{sec:net-driver}
 
@@ -16,8 +18,8 @@ and decapsulates the packets for the kernel(encapsulates them in a struct sk_buf
 and the native part.
 
 The native part uses native syscalls to assure communication between two devices.
-It can use any inter-process communication primitives like pipes, mail queues, sockets
-, etc... For this implementation I have chosen to use sockets so that it will be possible
+It can use any inter-process communication primitives like pipes, mail queues or sockets.
+For this implementation we have chosen to use sockets so that it will be possible
 to connect two devices on different computers.
 
 \fig[scale=0.5]{src/img/driver.pdf}{img:eth-driver}{Network driver}
@@ -32,17 +34,77 @@ to connect two devices on different computers.
 \section{Devices}
 \label{sec:devices}
 
+Using the Linux Kernel Library we have implemeted a few network devices described briefly
+here and in more detail in chapter \ref{chapter:impl}.
+
+Because of the way the network driver was implemented we could not watch the packets in the
+network using already available tools( tcpdump, wireshark). Also we would like that in a future version,
+the playback of the packets that wen through the devices to be possible and to simulte the network layer.
+For this we have implemented some additionale devices. The hub is used to simulate a connection between 
+two devices, all the traffic between them goes through a hub, and the bridge is used to connect non-LKL 
+applications to the \text{\project} devices.
+
 \subsection{Router}
 \label{sub-sec:router}
 
+A router is a layer three device that interconnects two or more computer networks. Its main responsability
+is to interchange packets between the networks that it connects, without it there would be no connectivity 
+between two different networks.
+
+The way it forwards the packets is by a routing table. Each entry in a routing table coresponds to a network
+and each entry has a outgoing interface or nexthop address. The routes in the table are organize from the most specific
+to the most general ones; the most general route 0.0.0.0/0 is called the default route. When a router receives a packets it 
+first checks if it is the destination, in which case it passes it to the next network level, otherwise it checks the routing
+table. If a match is found than the packet is sent through the outgoing interface. This can be seen in figure 
+
+\todo{add figure for packet route}
+
 \subsection{Switch}
 \label{sub-sec:switch}
+
+A switch is a layer two devices that interconnects devices on the same network( network segments). Its role is 
+to copy bits(packets) form on port to another very fast. It forwards packets based on the hardware or MAC address. 
+For this it uses a CAM table to know on which port to forward the packet. 
+
+When a switch is first started it does not know about the devices that are connected to it. When a packet arrives
+at the switch it addes its source MAC address to the CAM table and forwards the packet on all the other port, because
+it does not know on which of them is the destination. When a packet with a known destination address arrives at the
+switch it only forwards it to the port on which the destination MAC address is.
+
+Switches are generally layer two devices, but are not limited to this. Layer 3 switches exists, that are capable of 
+interconnecting different networks. Linux switches, being implemented on top of a linux box, are capable of working
+at all the levels(see ebtables\footnote{\url{http://ebtables.sourceforge.net/}} for a way to advanced packet filtering
+on a switch), but the device we implemeted works as a traditional switch, only on layer 3.
 
 \subsection{Firewall}
 \label{sub-sec:firewall}
 
 \subsection{NAT}
 \label{sub-sec:nat}
+
+Because of the rapid depletion of IPv4 addresses private addresses were introduced in RFC 1918\footnote{\url{http://tools.ietf.org/html/rfc1918}}
+ and RFC 4193\footnote{\url{http://tools.ietf.org/html/rfc4193}}. These addresses can be at home or in the office
+where global addresses are not necessary. They are called private because they are not allocated to a organization like
+other addresses and they are not accesible on the public Internet. The defined private addresses are:
+\begin{itemize}
+  \item 10.0.0.0 - 10.255.255.255
+  \item 172.16.0.0 - 172.31.255.255
+  \item 192.168.0.0 - 192.168.255.255
+\end{itemize}
+
+Another mechanism is \textbf{network address translation(NAT)}. It can be used in connection with private addresses to create
+large local networks that use few global addresses but still remain connected to the Internet. 
+
+NAT modifies IPv4 information in packet as it passes a device to remap an IP address space into another. There are two types of
+NAT:
+\begin{itemize}
+  \item \textbf{Basic NAT.} Is used only to translate one address space into another. Using basic NAT does not alleviate the need
+for more IP addresses, because we need as many global addresses as the number of private addresses we have.
+  \item \textbf{PNAT.} Apart from what basic \textbf{NAT} does it also translates ports. Using it many private addresses can be mapped
+to a few(or only one) public address.
+\end{itemize}
+
+\todo{nice picture of nat}
 
 \subsection{Auxiliar devices}
 \label{sub-sec:auxdev}
