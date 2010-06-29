@@ -37,6 +37,9 @@
 % all the chapters with 1.5 line spacing
 \usepackage{setspace}
 
+% saved by the spacing :)
+% \onehalfspacing
+
 % hyper-references
 % http://www.tug.org/applications/hyperref/manual.html
 \usepackage{hyperref}
@@ -225,6 +228,7 @@
 \newcommand{\labelref}[2]{\hyperref[#2]{#1}}
 \newcommand{\appref}[1]{\hyperref[#1]{Appendix~\ref{#1}}}
 \newcommand{\figref}[1]{\hyperref[#1]{Figure~\ref{#1}}}
+\newcommand{\tabref}[1]{\hyperref[#1]{Table~\ref{#1}}}
 
 % command for inserting labeled figures
 % Usage: \fig{file}{label}{caption}

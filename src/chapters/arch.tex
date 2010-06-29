@@ -3,8 +3,28 @@
 
 Just testing \cite{linnetarch}.
 
-\section{Linux Kernel Library}
+\section[Linux Kernel Library]{Linux Kernel Library\footnote{More information on LKL can be found in \cite{lklthesis}}}}
 \label{sec:lkl}
+
+The Linux kernel contains more than ten million lines of reliable, frequently tested code. It could
+be very usefull to use part of the code in other projects, but the fact that it is very interconected
+makes this a very difficult process. More then this, more than one million lines of code get changed on
+every new release of the kernel. This makes keeping in touch with the development of the kernel very difficult.
+
+The Linux Kernel Library is a project that tries to make this process a little easier on the developer. It builds
+a library out of code of the kernel, that can be linked with other programs and they will be able to use functions
+from the kernel. The architecture of a typical LKL application can be seen in \figref{img:lkl}. The main logic of the application is at the
+application layer. When it needs to call kernel code, it does so through the syscall layer in the LKL kernel. The syscalls then
+call the submodules of the linux kernel.
+
+The library is implemented as a new architecture in the linux kernel. This was made possible by the modular design of the linux
+kernel. For this is necessary to implement a few primitives using native calls:
+\begin{itemize}
+  \item Threads
+  \item IRQ
+  \item Timers
+  \item Syncronization primitives
+\end{itemize}
 
 \fig[scale=0.5]{src/img/lkl.pdf}{img:lkl}{LKL architecture}
 
@@ -27,6 +47,10 @@ to connect two devices on different computers.
 \section{LKL-net}
 \label{sec:lkl-net}
 
+\textbf{\project}
+
+\todo{pic}
+
 \fig[scale=0.5]{src/img/arch.pdf}{img:lkl-net-arch}{LKL-net architecture}
 
 \theproject
@@ -43,6 +67,8 @@ the playback of the packets that wen through the devices to be possible and to s
 For this we have implemented some additionale devices. The hub is used to simulate a connection between 
 two devices, all the traffic between them goes through a hub, and the bridge is used to connect non-LKL 
 applications to the \text{\project} devices.
+
+A short summary of all the devices can be found in \tabref{table:tdevices}
 
 \subsection{Router}
 \label{sub-sec:router}
@@ -79,6 +105,27 @@ on a switch), but the device we implemeted works as a traditional switch, only o
 \subsection{Firewall}
 \label{sub-sec:firewall}
 
+A firewall is network device that permits or denies traffic based on a set of rules. They can be implemented either in
+hardware or in software. They are used to block unauthorized access from outside a secure network or to limit the access
+from the inside to possible dangerous networks. It is generally placed on the edge of the network.
+
+A firewall uses a rule set to estabilsh if a packets should be allowed to pass or be droped. The rules can be defined
+by a user or default rules ( mostly drop all or accept all) can apply. When a packets enters the firewall all rule
+are inspected in the order that they appear in the rule set; if a match is found, the action of the rule is applied
+(ACCEPT or DROP), if no match is found, the default rule is applied.
+
+There are two types of firewalls:
+\begin{itemize}
+  \item \textbf{Stateless.} Stateless firewall are not capable of connection tracking, they can not be used block
+connections by their state(session initiation, establidhed). 
+  \item \textbf{Statefull.} Consume more resources then stateless firewalls, but they are able to do more complex 
+decision based on the state of the connection.
+\end{itemize} 
+
+Examples of firewall include ipfw, iptables, pf in software or Cisco PIX in hardware.
+
+\todo{nice picture of dead packets}
+
 \subsection{NAT}
 \label{sub-sec:nat}
 
@@ -98,7 +145,7 @@ large local networks that use few global addresses but still remain connected to
 NAT modifies IPv4 information in packet as it passes a device to remap an IP address space into another. There are two types of
 NAT:
 \begin{itemize}
-  \item \textbf{Basic NAT.} Is used only to translate one address space into another. Using basic NAT does not alleviate the need
+  \item \textbf{Basic NAT.} Is used only to translate one address space into another. Basic NAT does not alleviate the need
 for more IP addresses, because we need as many global addresses as the number of private addresses we have.
   \item \textbf{PNAT.} Apart from what basic \textbf{NAT} does it also translates ports. Using it many private addresses can be mapped
 to a few(or only one) public address.
@@ -106,17 +153,46 @@ to a few(or only one) public address.
 
 \todo{nice picture of nat}
 
-\subsection{Auxiliar devices}
+NAT is not a perfect solution. It does not guarantee end-to-end connectivity because some internet protocols embed the source
+ip address in their control traffic. On such example is FTP. It uses two ports, one for control and one for data, so it might receive
+packets from different sources although they come from the same device. In FTP this can be avoided using passive mode, but some other protocols
+don't offer this possibility.
+
+\subsection{Auxiliary devices}
 \label{sub-sec:auxdev}
 
 \subsubsection{Hub}
 
+A hub is a layer one device; it connects multiple devices into a single network segment. It does not do any checks on the packets
+, only send bits from one port to all the other ports.  It is much more inefficient than a switch because it does not make any decisions
+about the packet.
+
+Although it's main use is to create network segments, it can be used for other purposes. It can be used to create a network, allowing
+the connection of other devices that can sniff all the packets. Another use is in specialised protocols that require that all packets 
+arrive at all the devices on a network segment.
+
 \subsubsection{Bridge}
+
+A bridge is a layer one device that can be used to convert packets from one physical medium to another(e.g FDDI to Ethernet). In 
+\textbf{\project} it will be used to connect \textbf{non-LKL} applications(a web-browser or a DNS server) to \textbf{LKL} devices.
 
 \begin{center}
   \begin{table}[htb]
-    \caption{LKL-net devices}
-    \label{table:tdevices}
+  \begin{center}
+  \begin{tabular}{ | l | l | l |}
+    \hline
+      Device & Medium & CLI\\ \hline
+      Router & LKL & Yes \\ \hline
+      Switch & LKL & Yes \\ \hline
+      Firewall & LKL & Yes \\ \hline
+      NAT & LKL & Yes \\ \hline
+      Hub & non-LKL & No \\ \hline
+      Bridge & non-LKL & No \\ 
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{LKL-net devices}
+  \label{table:tdevices}
   \end{table}
 \end{center}
 
