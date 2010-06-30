@@ -7,6 +7,22 @@ and destroying virtual bridging interfaces, adding and removing firewall rules t
 iptables. I used some of these capabilities to implement the devices described in this 
 chapt	
 
+\section{Network driver}
+\label{sec:net-driver}
+
+\fig[scale=0.5]{src/img/driver.pdf}{img:eth-driver}{Network driver}
+
+The network driver is split into two separate parts: a LKL part and a native part.
+
+The lkl part takes care of the interaction with the lkl kernel. It encapsulates
+and decapsulates the packets for the kernel(encapsulates them in a struct sk_buff)
+and the native part.
+
+The native part uses native syscalls to assure communication between two devices.
+It can use any inter-process communication primitives like pipes, mail queues or sockets.
+For this implementation we have chosen to use sockets so that it will be possible
+to connect two devices on different computers.
+
 \section{Switch}
 \label{sec:switch-impl}
 

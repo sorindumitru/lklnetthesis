@@ -1,8 +1,6 @@
 \chapter{Application Architecture}
 \label{chapter:arch}
 
-Just testing \cite{linnetarch}.
-
 \section[Linux Kernel Library]{Linux Kernel Library\footnote{More information on LKL can be found in \cite{lklthesis}}}}
 \label{sec:lkl}
 
@@ -15,7 +13,10 @@ The Linux Kernel Library is a project that tries to make this process a little e
 a library out of code of the kernel, that can be linked with other programs and they will be able to use functions
 from the kernel. The architecture of a typical LKL application can be seen in \figref{img:lkl}. The main logic of the application is at the
 application layer. When it needs to call kernel code, it does so through the syscall layer in the LKL kernel. The syscalls then
-call the submodules of the linux kernel.
+call the submodules of the linux kernel. Another way an application can call kernel code is through a driver, because they can
+be split in two parts, a LKL part and a native part(see \ref{sec:net-driver} for an example).
+
+\fig[scale=0.5]{src/img/lkl.pdf}{img:lkl}{LKL architecture}
 
 The library is implemented as a new architecture in the linux kernel. This was made possible by the modular design of the linux
 kernel. For this is necessary to implement a few primitives using native calls:
@@ -26,34 +27,42 @@ kernel. For this is necessary to implement a few primitives using native calls:
   \item Syncronization primitives
 \end{itemize}
 
-\fig[scale=0.5]{src/img/lkl.pdf}{img:lkl}{LKL architecture}
+These primitives and the native part of the drivers are the only things that have to be implemented on a new platform. The 
+code for a platform is usually only a two-three hundreds of lines of code. As it can
+be see in \figref{img:lkl} there are LKL environments for POSIX, APR, Win32 and NT kernel.
 
 \subsection{Network driver}
-\label{sec:net-driver}
+\label{sub-sec:net-driver}
 
-The network driver is split into two separate parts: a LKL part and a native part.
-
-The lkl part takes care of the interaction with the lkl kernel. It encapsulates
-and decapsulates the packets for the kernel(encapsulates them in a struct sk_buff)
-and the native part.
-
-The native part uses native syscalls to assure communication between two devices.
-It can use any inter-process communication primitives like pipes, mail queues or sockets.
-For this implementation we have chosen to use sockets so that it will be possible
-to connect two devices on different computers.
-
-\fig[scale=0.5]{src/img/driver.pdf}{img:eth-driver}{Network driver}
+A network driver is a driver that commands a NIC. Because \textbf{\project} does not use physical interfaces
+the driver used by \textbf{\project} is a purely virtual one. As all drivers implemented in \textbf{LKL} 
+it is split into two parts, a kernel part(LKL) and a native part. Communication between the two parts
+is done through function calls and IRQs.
 
 \section{LKL-net}
 \label{sec:lkl-net}
 
-\textbf{\project}
+The networking module of the linux code was first tested in \textbf{LKL} in a proof of concept application
+\footnote{\url{http://github.com/lkl/lkl-proof-of-concept}}. This application was only a HTTP client, so
+it did not test or use all the capabilities of the Linux kernel.
 
-\todo{pic}
+\textbf{\project} tries to involve more of the linux kernel in a LKL application by using more modules
+of the linux kernel:
+\begin{itemize}
+  \item \textbf{Netlink}. Used in the router to manage the control plane.
+  \item \textbf{802.1d}. Used in the switch.
+  \item \textbf{ip_tables}. Used in the firewall and nat devices the manage rule set.
+\end{itemize}
 
-\fig[scale=0.5]{src/img/arch.pdf}{img:lkl-net-arch}{LKL-net architecture}
+All of the modules enumerated above are used to create a set of devices that can be connected together
+to form a network. Apart from this devices, that run on top of LKL, there are a few devices designed
+to allow us to more easily interconnect the other devices.
 
-\theproject
+A typical \textbf{\project} involves a couple of devices(router, switches, firewall or nats) and a few
+auxiliary devices to interconect them. A hub to connect two devices together and a bridge to connect them to
+a outside application. These devices are described in more detail in the next section and \chpref{chapter:impl}.
+
+\fig[scale=0.5]{src/img/lklnet.pdf}{img:lkl-net-arch}{LKL-net architecture}
 
 \section{Devices}
 \label{sec:devices}
@@ -198,3 +207,14 @@ A bridge is a layer one device that can be used to convert packets from one phys
 
 \section{Hypervisor}
 \label{sub-sec:hypervisor}
+
+The hypervisor is used to interconect the devices into a topology. It can start and stop devices, 
+communicate with to gather information. For example when a device requests the ip address and port
+information about hub to connect to another device, they do so through the hypervisor.
+
+The devices can be started and interconnected without a hypervisor, but it is easier to manage them
+using the hypervisor. Devices can be grouped inside a hypervisor configuration file and started with
+only one command. More then that, devices can use the hypervisor to find out information about other devices
+It also provides a GUI.
+
+\fig[scale=0.5]{src/img/arch.pdf}{img:hlkl-net-arch}{LKL-net architecture}

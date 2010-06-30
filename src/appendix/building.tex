@@ -2,7 +2,7 @@
 
 \todo{Try to move Makefile.lkl in Makefile.am and update this}
 
-For a build system I chose GNU Autotools. This allows building
+For a build system we chose GNU Autotools. This allows building
 and installing the application with only three well-known commands:
 
 \lstset{language=bash,caption=Build System,label=lst:building}
@@ -11,6 +11,21 @@ and installing the application with only three well-known commands:
   ./configure
   make
   make install
+\end{lstlisting}
+
+There are few required packages:
+\begin{itemize}
+  \item flex
+  \item libgtk2
+  \item libgtksourceview
+  \item libreadline
+\end{itemize}
+
+This can be installed, in a Debian based distribution using the following 
+command:
+\lstset{language=zsh,caption=Required packages,label=lst:bpacakges}
+\begin{lstlisting}
+  $> sudo apt-get install libgtk2.0-dev libgtksourceview-dev flex autotools-dev libreadline-dev
 \end{lstlisting}
 
 The first step is used to build LKL from the linux kernel sources; it
