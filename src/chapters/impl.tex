@@ -1,51 +1,65 @@
 \chapter{Implementation}
 \label{chapter:impl}
 
-The linux kernel offers great support for turning an ordinary computer into a network
-device. It allows to modify the routing table through NETLINK sockets, creating
-and destroying virtual bridging interfaces, adding and removing firewall rules through 
-iptables. I used some of these capabilities to implement the devices described in this 
-chapt	
+The linux kernel offers great support for turning an ordinary
+computer into a network device. It allows to modify the routing 
+table through NETLINK sockets, creating and destroying virtual 
+bridging interfaces, adding and removing firewall rules through 
+iptables. I used some of these capabilities to implement the 
+devices described in this chapter.
 
 \section{Network driver}
 \label{sec:net-driver}
 
 \fig[scale=0.5]{src/img/driver.pdf}{img:eth-driver}{Network driver}
 
-The network driver is split into two separate parts: a LKL part and a native part.
+The network driver is split into two separate parts: a LKL part 
+and a native part.
 
-The lkl part takes care of the interaction with the lkl kernel. It encapsulates
-and decapsulates the packets for the kernel(encapsulates them in a struct sk_buff)
-and the native part.
+The lkl part takes care of the interaction with the lkl kernel.
+It encapsulates and decapsulates the packets for the kernel
+(encapsulates them in a struct sk_buff) and the native part.
 
-The native part uses native syscalls to assure communication between two devices.
-It can use any inter-process communication primitives like pipes, mail queues or sockets.
-For this implementation we have chosen to use sockets so that it will be possible
-to connect two devices on different computers.
+The native part uses native syscalls to assure communication 
+between two devices. It can use any inter-process communication 
+primitives like pipes, mail queues or sockets.
+For this implementation we have chosen to use 
+sockets so that it will be possible to connect two devices 
+on different computers.
+
+When the native part receives a packet, it processes it, taking apart
+the extra information added to it,  and sends it through an IRQ signal
+to the LKL part of the driver. When the LKL part of the driver receives it,
+it sends it trough the netif_rx function from the Linux kernel. When sending
+a packet, the process is reversed, communication between the LKL part and the
+native part being done through direct function calls.
 
 \section{Switch}
 \label{sec:switch-impl}
 
-In the next section a switch is called a bridge, as this the terminology used by the linux kernel.
+In the next section a switch is called a bridge, as this
+the terminology used by the linux kernel.
 
 \subsection{Linux support}
 \label{sub-sec:switch-lin}
 
-Linux offers support for bridging through virtual interfaces. A bridge interface
-can be create through code, as seen in \ref{lst:cbridgeadd}, or using the bridge-utils
-package:
+Linux offers support for bridging through virtual interfaces.
+A bridge interface can be create through code, as seen in 
+\ref{lst:cbridgeadd}, or using the bridge-utils package:
 \lstset{language=zsh,caption=Adding a bridge interface,label=lst:sbridgeadd}
 \begin{lstlisting}
   #> brctl add br0
 \end{lstlisting}
-Because the created interface is a virtual one, it cannot be used by itself to receive packats
-from the network. In order to do this, physical interfaces must be added to the bridge. This 
+Because the created interface is a virtual one, it cannot be
+used by itself to receive packats from the network. In order 
+to do this, physical interfaces must be added to the bridge. This 
 can be done using brctl:
 \lstset{language=zsh,caption=Adding a bridge interface,label=lst:sportadd}
 \begin{lstlisting}
   #> brctl addif br0 eth0
 \end{lstlisting}
-where br0 is the name of the virtual interface and eth0 the name of the physical one.
+where br0 is the name of the virtual interface and eth0 the 
+name of the physical one.
 
 Other features:
 \begin{itemize}
@@ -85,6 +99,30 @@ An example of adding a new bridge interface:
 
 \subsection{Device tests}
 \label{sub-sec:switch-tests}
+
+For testing the capabilities of the switch we have done a small test containg a few switches. We will attach two LKL programs at the Glasgow and London switches to see if the can exchange packets through the switches. STP will be enabled so we will take a look at it too.
+
+The topology consists of three switches(London, Glasgow and Manchester) connected in a triangle. Each connection between them is done through a hub, but they will not taken into consideration for the test:
+
+\fig[scale=0.5]{src/img/switches.png}{img:switches}{Switch test}
+
+\begin{center}
+  \begin{table}[htb]
+  \begin{center}
+  \begin{tabular}{| l | l | l | l | l |}
+    \hline
+      Hostname & Interface & MAC & Interface & MAC \\ \hline
+      London & eth0 & 66:44:00:40:02:01 & eth1 & 66:44:00:30:02:02 \\ \hline
+      Glasgow & eth0 & aa:bb:cc:60:01:01 & eth1 & aa:bb:cc:50:01:02 \\ \hline
+      Manchester & eth0 & 00:11:22:10:03:01 & eth1 & 00:11:22:20:03:02 \\
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{LKL-net devices}
+  \label{table:tdevices}
+  \end{table}
+\end{center}
+
 
 \section{Firewall}
 \label{sub-sec:firewall-impl}
@@ -238,15 +276,30 @@ for a complete listing of available commands) to configure the device. Starting 
 devices and configuring them can a time-consuming task, so we decided on building a GUI application to visualise and configure
 the topology, as well as starting and stoping the devices.
 
-\fig[scale=0.44]{src/img/gui.png}{img:gui}{GUI}
+\fig[scale=0.33]{src/img/gui.png}{img:gui}{GUI}
 
-THe GUI was built using the GTK library\footnote{\url{http://www.gtk.org/}}. For the topology we created a new GTK widget
+
+The GUI was built using the GTK library\footnote{\url{http://www.gtk.org/}}. For the topology we created a new GTK widget
 that allows us to create and place new devices in the topology as well as creating links between them. In order to draw
 the devices on the topology we used the Cairo library, which can be used to draw on GTK widget.
 
 Apart from creating the network topology, the GUI can be used to do some of the configuration of the devices. This is 
 more user-friendly than the command line interface used in the devices, so some user might prefer it. Users can also see
 the saved configuration of the devices.
+
+\begin{enumerate}
+  \item Boot. Used to start the topology. 
+  \item Load topology. 
+  \item Save topology
+  \item Create Router
+  \item Create Switch
+  \item Create Hub
+  \item Create Bridge
+  \item Create link
+  \item Delete link
+  \item Destroy device
+  \item Clear selection
+\end{enumerate}
 
 \section{Console and configuration file}
 \label{sec:dev-conf}

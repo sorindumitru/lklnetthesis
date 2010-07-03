@@ -34,10 +34,15 @@ be see in \figref{img:lkl} there are LKL environments for POSIX, APR, Win32 and 
 \subsection{Network driver}
 \label{sub-sec:net-driver}
 
-A network driver is a driver that commands a NIC. Because \textbf{\project} does not use physical interfaces
-the driver used by \textbf{\project} is a purely virtual one. As all drivers implemented in \textbf{LKL} 
-it is split into two parts, a kernel part(LKL) and a native part. Communication between the two parts
+A network driver is a driver that commands a NIC. Because 
+\textbf{\project} does not use physical interfaces
+the driver used by \textbf{\project} is a purely virtual 
+one. As all drivers implemented in \textbf{LKL} 
+it is split into two parts, a kernel part(LKL) and 
+a native part. Communication between the two parts
 is done through function calls and IRQs.
+Devices make syscalls to the driver in order to create and
+destroy interfaces and to change their state( UP or DOWN).
 
 \section{LKL-net}
 \label{sec:lkl-net}
