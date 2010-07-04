@@ -27,18 +27,34 @@ as the posibilty of using a more traditional language, C, or the possibilty of r
 it back into the main Linux kernel. The disadvantage is that it is harder to write a protocol
 in the linux kernel than writing it standalone.
 
-%\subsection{Project Scope}
-%\label{sub-sec:proj-scope}
+\subsection{Project Scope}
+\label{sub-sec:proj-scope}
+
+The main scope of the project is educational. Being able to easly create network topologies
+and simulate and watch packets as they traverse the network will be make it easier for students
+to grasp the inner workings of network devices and protocols.
+
+Researcher would be able to test the existing TCP/IP stack and easly modify it and see
+the effects of the modifications. This might leed to better implementations of network
+algorithms. Although it would require better knowledge of the Linux kernel, especially
+the networking module, it is posibile to add new protocols to the simulator. It would
+be very advantageous to be able to create new topologies on the fly to test this protocols.
 
 \subsection{Project Objectives}
 \label{sub-sec:proj-objectives}
 
-educational
-
-research
+\textbf{\project} will simulate a network containing a large number of devices, each node
+running a full TCP/IP stack from the Linux kernel via \textbf{LKL}. It should be easy to create 
+network topologies and start quickly on simulating them. 
 
 The system shouldn't be isolated from the outside world. It would be advantageous to be able
-to include applications outside the LKL ecosystem.
+to include applications outside the LKL ecosystem. For example one could include
+a web server to server webpages to applications. Writing a new web server over \textbf{LKL} would
+be a wasted effort.
+
+Apart from being a network simulator, it will also be used to test the network module of the \textbf{LKL}
+project. On such bug was fixed at the start of the project. The sequence number from the TCP header
+was computed wrong on every packet because of some bugs in the memory manipulation code.
 
 \section{Related Work}
 \label{sec:proj-related}
@@ -79,8 +95,8 @@ Packet tracer is a proprietary tool developed by Cisco. It is primary used as a 
 in Cisco Certified Network Assistent courses offered by Cisco.
 Packet tracer is only a simulator and does not run code that runs on the Cisco devices, so
 it is unsuitable for a realistic simulation of complex networks. It is also closed source, so
-the devices cannot be modified.
-
+the devices cannot be modified. Although it does not offer thue simulation of network topologies,
+it is very user-friendly, so it very easy for newcomers to use the application.
 
 \subsection{NS-2}
 Ns(network simulator) is a discrete event network simulator used for networking research that is

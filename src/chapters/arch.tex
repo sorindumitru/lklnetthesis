@@ -165,7 +165,7 @@ for more IP addresses, because we need as many global addresses as the number of
 to a few(or only one) public address.
 \end{itemize}
 
-\todo{nice picture of nat}
+\fig[scale=0.4]{src/img/nat.pdf}{img:impl-nat}{PAT}
 
 NAT is not a perfect solution. It does not guarantee end-to-end connectivity because some internet protocols embed the source
 ip address in their control traffic. On such example is FTP. It uses two ports, one for control and one for data, so it might receive
