@@ -123,6 +123,72 @@ The topology consists of three switches(London, Glasgow and Manchester) connecte
   \end{table}
 \end{center}
 
+The full configuration can be found in the devices configuration file. The hypervisor's config file
+ca be found in tests/hypervisor.test/switches in the git repository\footnote{\url{http://github.com/sorindumitru/lkl-net}}.
+The switches's config file are found in tests/stp/switch.hostname.
+
+A \textbf{LKL} application was built to help us test the devices. It acts like a host. In order to start it
+a few parameters must be specified:
+\begin{lstlisting}
+  -a, --address=IPv4 address -IPv4 address for the lkl interface
+  -n, --netmask-length=int   -IPv4 netmask length for the lkl interface
+  -d, --default=IPv4 address -IPv4 default route
+  -g, --gateway=IPv4 address -IPv4 gateway for lkl-the address of the system where the hub is located
+  -i, --interface=string     -LKL interface name
+  -m, --mac=mac address      -MAC address for the lkl interface
+  -r, --role=client|string   -Role of the application
+\end{lstlisting}
+It is built as both a client and server, its role being specified by the --role option. The client
+sends a string to the server, the server prints from whom the message came and then the client prints
+a message to show that it received the response from the server.
+
+For this setup we connected this application to the hubs using the following commands:
+\begin{lstlisting}
+bin/echo -l -i eth0 -a 192.168.1.1 -m 00:00:00:aa:bb:cc -n 24 -g 127.0.0.1 -d 192.168.1.10 -r server -p 50001
+bin/echo -l -i eth0 -a 192.168.1.2 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 192.168.1.10 -r client -p 50002 -t 192.168.1.1
+\end{lstlisting}
+After the commands are issued, it can be seen that the messages are being sent so we know that the switches are working.
+
+We would also like to test STP. First it must be enabled:
+\begin{lstlisting}
+stp on brd0
+\end{lstlisting}
+After this we can gather information from the kernel:
+\begin{lstlisting}
+show stp brd0
+\end{lstlisting}
+The result of the command on the Manchester switch in one of the test runs:
+\begin{lstlisting}
+8000.001122200302 bridge id		
+8000.001122200302 designated root	
+root port	       0		  path cost	       0
+ max age	       20.00		  bridge max age       20.00
+ hello time	       2.00		  bridge hello time    2.00
+ forward delay	       15.00	  	  bridge forward delay 15.00
+ aging time	       300.00
+ hello timer	       1.11		  tcn timer	       0.00
+ topology change timer 0.00		  gc timer	       11.11
+ flags			
+
+
+eth1 (1)
+ port id	   8001		     state      forwarding
+ designated root   8000.001122200302 path cost		 100
+ designated bridge 8000.001122200302 message age timer	 0.00
+ designated port   8001		     forward delay timer 0.00
+ designated cost   0		     hold timer		 0.11
+ flags			
+
+eth0 (2)
+ port id           8002		     state      forwarding
+ designated root   8000.001122200302 path cost           100
+ designated bridge 8000.001122200302 message age timer   0.00
+ designated port   8002		     forward delay timer 0.00
+ designated cost   0		     hold timer	         0.11
+ flags			
+\end{lstlisting}
+On the Glasgow switch on of the ports from the bridge is in the blocking state
+so we know that STP is working.
 
 \section{Firewall}
 \label{sub-sec:firewall-impl}
@@ -225,6 +291,56 @@ filter -L [chain]
 \subsection{Device tests}
 \label{sub-sec:firewall-tests}
 
+Testing the device can be done through a simple topology described in the \figref{img:firewalls}. It contains only a
+router that will also be used as a firewall. A couple of rules will be applied and we will se their effect.
+
+\fig[scale=0.5]{src/img/firewall.png}{img:firewalls}{Firewall test}
+
+\begin{center}
+  \begin{table}[htb]
+  \begin{center}
+  \begin{tabular}{| l | l | l | l | l |}
+    \hline
+      Hostname & Interface & IP & Interface & IP \\ \hline
+      GreatWall & eth0 & 192.168.1.1/24 & eth1 & 192.168.2.1/24 \\ 
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{LKL-net devices}
+  \label{table:tdevices}
+  \end{table}
+\end{center}
+
+We would like to see if, with no rule applied, it accepts all packets and after rules are addded, only the denied packets
+are drope, other being forwarded.
+
+For this setup we connected the host application to the hubs using the following commands:
+\begin{lstlisting}
+bin/echo -l -i eth0 -a 192.168.1.100 -m 00:00:00:aa:bb:cc -n 24 -g 127.0.0.1 -d 192.168.1.1 -r server -p 50001
+bin/echo -l -i eth0 -a 192.168.2.100 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 192.168.2.1 -r client -p 50002 -t 192.168.1.100
+bin/echo -l -i eth0 -a 192.168.2.200 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 192.168.2.1 -r client -p 50002 -t 192.168.1.100
+\end{lstlisting}
+Without any rules in the firewall, the packets are allowed to pass, as it can be seen from messages shown by the application.
+
+We add a rule blocking the 192.168.2.100 client with the following command:
+\begin{lstlisting}
+GreatWall>filter -A FORWARD -s 192.168.2.100/32 -j DROP
+\end{lstlisting}
+A listing of all the rules shows the rule in place:
+\begin{lstlisting}
+GreatWall>filter -L
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+1	 | -A INPUT -j DROP-s 192.168.2.100/32 -d 0.0.0.0/0
+\end{lstlisting}
+After the rule is in place the packets from the 192.168.2.100 host are not able to reach the server while the packets from
+the 192.168.2.200 host are capable of reaching the server as proven by the printed messages.
+
+We then add a rule blocking all packets with the destination network 192.168.1.0/24 to see if all the packets are blocked:
+\begin{lstlisting}
+GreatWall>filter -A FORWARD -d 192.168.1.0/24 -j DROP
+\end{lstlisting}
+As expected, all the packets are now blocked.
+
 \section{Bridge}
 
 \subsection{Linux support}
@@ -267,6 +383,48 @@ through a socket.
 \subsection{Device tests}
 \label{sub-sec:bridge-tests}
 
+Testing the device will be done using the same topology used in the firewall tests. The only difference
+is that a bridge is added in order to use tcpdump to sniff the packets. The devices configuration files
+can be found in tests/firewall/
+
+\fig[scale=0.5]{src/img/bridge.png}{img:bridges}{Bridge test}
+
+\begin{center}
+  \begin{table}[htb]
+  \begin{center}
+  \begin{tabular}{| l | l | l | l | l |}
+    \hline
+      Hostname & Interface & IP & Interface & IP \\ \hline
+      GreatWall & eth0 & 192.168.1.1/24 & eth1 & 192.168.2.1/24 \\ 
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{LKL-net devices}
+  \label{table:tdevices}
+  \end{table}
+\end{center}
+
+When the bridge is created it will create a virtual TAP interface,  tap0. This interface will be later used
+by user space programs such as tcpdump or wireshark to capture the packets:
+
+\begin{lstlisting}
+#>tcpdump -i tap0 -v
+22:19:40.903299 ARP, Ethernet (len 6), IPv4 (len 4), Request who-has 192.168.2.1 tell 192.168.2.100, length 28
+22:19:40.903701 ARP, Ethernet (len 6), IPv4 (len 4), Reply 192.168.2.1 is-at 00:00:00:00:22:33 (oui Ethernet), length 28
+\end{lstlisting}
+
+Later on we can see that packets are being exchanged between the client and the server:
+
+\begin{lstlisting}
+    192.168.1.100.60000 > 192.168.2.100.50132: Flags [P.], cksum 0x8b00 (correct), seq 1:6, ack 1025, win 3920, options [nop,nop,TS val 4294937701 ecr 4294937605], length 5
+22:19:44.017636 IP (tos 0x0, ttl 63, id 11296, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.1.100.60000 > 192.168.2.100.50132: Flags [F.], cksum 0xaed9 (correct), seq 6, ack 1025, win 3920, options [nop,nop,TS val 4294937701 ecr 4294937605], length 0
+22:19:44.054771 IP (tos 0x0, ttl 64, id 19665, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.2.100.50132 > 192.168.1.100.60000: Flags [.], cksum 0xb2ba (correct), ack 6, win 2920, options [nop,nop,TS val 4294937613 ecr 4294937701], length 0
+22:19:44.054931 IP (tos 0x0, ttl 64, id 19666, offset 0, flags [DF], proto TCP (6), length 52)
+    192.168.2.100.50132 > 192.168.1.100.60000: Flags [F.], cksum 0xb2b8 (correct), seq 1025, ack 7, win 2920, options [nop,nop,TS val 4294937613 ecr 4294937701], length 0
+\end{lstlisting}
+
 \section{Hypervisor}
 \label{sec:hypervisor2}
 
@@ -298,7 +456,7 @@ the saved configuration of the devices.
   \item Create link
   \item Delete link
   \item Destroy device
-  \item Clear selection
+  \item Clear selection. 
 \end{enumerate}
 
 \section{Console and configuration file}

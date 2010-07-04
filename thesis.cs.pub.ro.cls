@@ -38,7 +38,7 @@
 \usepackage{setspace}
 
 % saved by the spacing :)
-% \onehalfspacing
+\onehalfspacing
 
 % hyper-references
 % http://www.tug.org/applications/hyperref/manual.html

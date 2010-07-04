@@ -1,10 +1,120 @@
 \chapter{Testing}
 
-\section{Throughput}
-\label{sec:throughput}
+\section{Round trip time and throughput}
+\label{sec:response-time}
 
-\section{Packets per second}
-\label{sec:pps}
 
+We would like to test the response time and the throughput of one device. For this we will be using
+a simple topology described in \figref{img:trans-test}. It contains a router with one interface and
+a hub connected to it. The hub is added so we can connect a bridge to the router to be able to use
+existing user space tools for testing.
+
+\fig[scale=0.5]{src/img/trans.png}{img:trans-test}{Respons time test topology}
+
+\begin{center}
+  \begin{table}[htb]
+  \begin{center}
+  \begin{tabular}{| l | l | l |}
+    \hline
+      Hostname & Interface & IP  \\ \hline
+      Router0 & eth0 & 192.168.2.1/24 \\ 
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{LKL-net devices}
+  \label{table:tdevices}
+  \end{table}
+\end{center}
+
+After we start the bridge, we must bring up the interface and add a route for the network of the
+router. This is done with the following commands:
+
+\lstset{language=zsh,caption=Configuring a TAP interface,label=lst:conf-tap}
+\begin{lstlisting}
+  #> ip link set tap0 up
+  #> ip address add 192.168.2.100 dev tap0 ;; Must use an address from the same network as the interface
+of the driver
+  #> ip route add 192.168.2.0/24 dev tap0
+\end{lstlisting}
+
+We will be using ping to test the devices. We chose ping because it was easier than writing another test application
+that times the delivery of packets. The output of the command is:
+\lstset{language=zsh,caption=,label=lst:pingout}
+\begin{lstlisting}
+ #> ping 192.168.2.1 -f -c 1000 -s 1400 -a -v
+PING 192.168.2.1 (192.168.2.1) 1400(1428) bytes of data.
+                 
+--- 192.168.2.1 ping statistics ---
+1000 packets transmitted, 1000 received, 0% packet loss, time 13242ms
+rtt min/avg/max/mdev = 39.966/116.117/224.098/29.775 ms, pipe 17, ipg/ewma 13.255/106.991 ms
+ #> ping 192.168.2.1 -f -c 1000 -s 1400 -a -v
+PING 192.168.2.1 (192.168.2.1) 1400(1428) bytes of data.
+                 
+--- 192.168.2.1 ping statistics ---
+1000 packets transmitted, 1000 received, 0% packet loss, time 13015ms
+rtt min/avg/max/mdev = 9.414/114.034/203.237/32.603 ms, pipe 17, ipg/ewma 13.028/111.240 ms
+\end{lstlisting}
+
+\begin{itemize}
+  \item \textbf{Throughput}. Throughput or network throughput is the average rate of successful message delivery 
+over a communication channelAs it can be seen in the output, 1000 packets have been sent in 13242ms. As this
+is a round trip. The throughput of the device is situated somewhere around 1000 packets per 6621ms. The cause of this
+low throughput will be discussed at Round Trip Time.
+  \item \textbf{Round Trip Time.}  Round trip time is the length of time it takes for a signal to be sent plus the 
+length of time it takes for an acknowledgement of that signal to be received. Ping reports that rtt is
+rtt min/avg/max/mdev = 9.414/114.034/203.237/32.603 ms. The network driver waits in a blocking state in a recv
+call for the packets to arrive. This means that its speed is dependen on the host operating system. If it will
+always be awaken fast when a packet arrives then the speed will be high, otherwise it will be low. This has been
+noticed in practice withe packets sent by ping having a rtt as low as 0.3 ms or as high as a 230ms.
+  \item \textbf{Interpacket gap/Exponentially weighted moving average (ipg/ewma).} Interpacket gap is the minimum idle period
+between transmission of Ethernet frames, this allows devices to prepare for reception of the next frame. Exponentially wighted moving
+average applies weighting factors that decrease exponentially. This give greater importance to recent data while still not discarding
+old data. The ones calculated by ping are ipg/ewma 13.028/111.240 ms.
+
+We tested with a few different sizes for the payload of the packets and we didn't see any important change in these
+factors. This means that the bottleneck in the network is not the driver or the way it handles data, but the time
+that the native system allows the driver thread to run.
+
+\end{itemize}
 \section{Scalability}
 \label{sec:scalability}
+
+One of the objectives of the project was to be able to simulate a large nmber of devices. For this we have
+created a topology generator that ce be found in scripts/generator.py. It generates a topology of
+x by y switches connected in a full mesh. To create a 4 by 4 topology in the folder test:
+\begin{lstlisting}
+python scripts/generator.py 4 4 test
+\end{lstlisting}
+
+Ping between the corners of the topology
+\begin{lstlisting}
+PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
+64 bytes from 192.168.20.1: icmp_seq=1 ttl=64 time=686 ms
+64 bytes from 192.168.20.1: icmp_seq=2 ttl=64 time=39.3 ms
+64 bytes from 192.168.20.1: icmp_seq=3 ttl=64 time=1.27 ms
+64 bytes from 192.168.20.1: icmp_seq=4 ttl=64 time=573 ms
+64 bytes from 192.168.20.1: icmp_seq=5 ttl=64 time=202 ms
+64 bytes from 192.168.20.1: icmp_seq=6 ttl=64 time=37.8 ms
+\end{lstlisting}
+It can be seen that the time is greater than the single device
+tests, but this is normal as there are more devices in the topology(
+the shortest path in the topology crosses 7 devices).
+
+Ping between the corners of the topology with the flood options:
+\begin{lstlisting}
+PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
+.............................................^C                                
+--- 192.168.20.1 ping statistics ---
+5826 packets transmitted, 5781 received, 0% packet loss, time 75522ms
+rtt min/avg/max/mdev = 100.066/568.539/1026.571/116.873 ms, pipe 79, ipg/ewma 12.965/631.160 ms
+\end{lstlisting}
+
+We have looked at the devices using top. The switches take between 1.6 and 2.1 Mb of memory. This is
+because the switches have different number of interfaces. The ones in the corner having only 2 while
+the ones in the middle have 4. Although the devices are given 16Mb of memory, the native system
+only reports only the memory that is in use. Cpu time was hard the notice as the devices are only active
+when a packets passes their interfaces. Only when the flood option was used with ping, we noticed
+4\% use of the CPU by a switch, but this also varied greatly.
+
+\section{Complex network}
+\label{sec:complex-network}
