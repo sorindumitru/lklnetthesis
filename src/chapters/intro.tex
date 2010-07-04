@@ -4,21 +4,38 @@
 \section{Project Description}
 \label{sec:proj}
 
+Network simulators predict the behavior of a network, without actually needing any network devices.
+This greatly reduces the time and cost required by setting up a network using real devices. Although
+they have some disadvantages over real devices, speed and capabilities being the main ones, they
+make it easier for people such researchers or students to test a diverse number of topologies under
+different circumstances. They are also useful for engineers who do quality assurence and performance
+testing.
+
+Network simulators usually offer users the possibilty of creating network topologies, specifing the
+network nodes and the links between those nodes. Apart from simulating the topology, some network
+simulators have more advanced features such as packet playback or packet introspection.
+There are also network simulators that are capable of describing not only networks, but also protocols
+using domanin specific languages.
+
 \textbf{\project} builds on the capabilities offered by the \textbf{Linux Kernel Library} to create
 a complex network simulator capable of simulating end-to-end a complex network and a large number
-of devices.
+of devices. This mean that each device will act like a linux box, offering a full TCP/IP stack.
+More than this, the stack is proven to be correct by the users and developers of Linux. Advanced
+users are not limited to simulating devices and protocols, they can also create new protocols by
+adding them to the linux kernel. This method has some advantages over domain specific languages such
+as the posibilty of using a more traditional language, C, or the possibilty of rapidly integrating
+it back into the main Linux kernel. The disadvantage is that it is harder to write a protocol
+in the linux kernel than writing it standalone.
 
-\subsection{Project Scope}
-\label{sub-sec:proj-scope}
-
-educational
-
-research
+%\subsection{Project Scope}
+%\label{sub-sec:proj-scope}
 
 \subsection{Project Objectives}
 \label{sub-sec:proj-objectives}
 
+educational
 
+research
 
 The system shouldn't be isolated from the outside world. It would be advantageous to be able
 to include applications outside the LKL ecosystem.
@@ -66,5 +83,28 @@ the devices cannot be modified.
 
 
 \subsection{NS-2}
-Ns(network simulator) is a discrete event network simulator used for networking research.
-\todo{Learn more about NS-2}
+Ns(network simulator) is a discrete event network simulator used for networking research that is
+mainly used for research. It uses a domain specific language to create network nodes, links and
+hosts to generate traffic:
+\lstset{language=zsh, caption=NS-2 topology, label=lst:ns2}
+\begin{lstlisting}
+set n0 [$ns node]
+set n1 [$ns node
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 set packetSize_ 500
+$cbr0 set interval_ 0.005
+$cbr0 attach-agent $udp0
+set null0 [new Agent/Null] 
+$ns attach-agent $n1 $null0
+$ns connect $udp0 $null0
+$ns at 0.5 "$cbr0 start"
+$ns at 4.5 "$cbr0 stop"
+\end{lstlisting}
+The code in listing \ref{lst:ns2} tells ns-2 to create two network nodes connected by a link
+and to attach a host and a traffic generate. The last two lines start to simulation.
+
+Although it is a very powerfull tool, ns-2 has a very high learning curve, as it can be seen
+in listing \ref{lst:ns2} and it does not run real devices.
