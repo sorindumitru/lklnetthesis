@@ -11,10 +11,10 @@ Most of the code from project is platform independent:
   \item flex is available for most operating systems
   \item libreadline is available for most operating systems
   \item GTK is crossplatform
-  \item There implementation of POSTIX on other platform, and they are mostly POSIX-compliant
+  \item There implementation of POSIX on other platform, and they are mostly POSIX-compliant
 \end{itemize}
 
-There are LKL environments for most operating systems(excluding MacOs) so it will be easily possible to port it
+There are \textbf{LKL} environments for most operating systems(excluding MacOs) so it will be easily possible to port it
 to other operating systems. The only part that has to moved to a different operating system is the network driver.
 But this can easily be done.
 
@@ -36,7 +36,7 @@ in a learning environment.
 \subsubsection{Distributed hypervisors}
 
 The current implementation of the hypervisor is of only one hypervisor per topology. The number of devices that can be
-simulated can be increased by having more hypervisor on different computers comunicating between each other. Each hypervisor 
+simulated can be increased by having more hypervisor on different computers communicating between each other. Each hypervisor 
 would manage their devices and communicate with the other hypervisors when they needed information about foreign devices.
 
 \subsubsection{Port Zebra to LKL-net}
@@ -44,4 +44,4 @@ would manage their devices and communicate with the other hypervisors when they 
 Gnu Zebra is a routing software package that provides TCP/IP based routing services with routing protocols support such
 as RIP, OSPF or BGP. 
 
-By porting Zebra to LKL-net we would have a better way to manage the control pane of the router.
+By porting Zebra to \textbf{\project} we would have a better way to manage the control pane of the router.

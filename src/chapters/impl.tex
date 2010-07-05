@@ -1,11 +1,11 @@
 \chapter{Implementation}
 \label{chapter:impl}
 
-The linux kernel offers great support for turning an ordinary
-computer into a network device. It allows to modify the routing 
+The Linux kernel offers great support for turning an ordinary
+computer into a network device. It makes it possible to modify the routing 
 table through NETLINK sockets, creating and destroying virtual 
 bridging interfaces, adding and removing firewall rules through 
-iptables. I used some of these capabilities to implement the 
+iptables. We used some of these capabilities to implement the 
 devices described in this chapter.
 
 \section{Network driver}
@@ -13,10 +13,10 @@ devices described in this chapter.
 
 \fig[scale=0.5]{src/img/driver.pdf}{img:eth-driver}{Network driver}
 
-The network driver is split into two separate parts: a LKL part 
+The network driver is split into two separate parts: a \textbf{LKL} part 
 and a native part.
 
-The lkl part takes care of the interaction with the lkl kernel.
+The \textbf{LKL} part takes care of the interaction with the \textbf{LKL} kernel.
 It encapsulates and decapsulates the packets for the kernel
 (encapsulates them in a struct sk_buff) and the native part.
 
@@ -29,16 +29,15 @@ on different computers.
 
 When the native part receives a packet, it processes it, taking apart
 the extra information added to it,  and sends it through an IRQ signal
-to the LKL part of the driver. When the LKL part of the driver receives it,
-it sends it trough the netif_rx function from the Linux kernel. When sending
-a packet, the process is reversed, communication between the LKL part and the
+to the \textbf{LKL} part of the driver. When the \textbf{LKL} part of the driver receives it,
+it sends it trough the netif_rx function to the Linux kernel. When sending
+a packet, the process is reversed, communication between the \textbf{LKL} part and the
 native part being done through direct function calls.
 
 \section{Switch}
 \label{sec:switch-impl}
 
-In the next section a switch is called a bridge, as this
-the terminology used by the linux kernel.
+In the next section a switch is called a bridge, as this the terminology used by the Linux kernel.
 
 \subsection{Linux support}
 \label{sub-sec:switch-lin}
@@ -51,7 +50,7 @@ A bridge interface can be create through code, as seen in
   #> brctl add br0
 \end{lstlisting}
 Because the created interface is a virtual one, it cannot be
-used by itself to receive packats from the network. In order 
+used by itself to receive packets from the network. In order 
 to do this, physical interfaces must be added to the bridge. This 
 can be done using brctl:
 \lstset{language=zsh,caption=Adding a bridge interface,label=lst:sportadd}
@@ -59,7 +58,9 @@ can be done using brctl:
   #> brctl addif br0 eth0
 \end{lstlisting}
 where br0 is the name of the virtual interface and eth0 the 
-name of the physical one.
+name of the physical one. The same thing can be done in C in a similar
+way as adding a bridge interface, only the arguments of the lkl_sys_ioctl
+function being different.
 
 Other features:
 \begin{itemize}
@@ -69,23 +70,23 @@ Other features:
 \end{itemize}
 Of these, only STP support has been implemented in \textbf{\project}.
 
-To enable bridgin support in the kernel, the ``networking->802.1d Ethernet Bridging'' option
+To enable bridging support in the kernel, the ``networking->802.1d Ethernet Bridging'' option
 must be set. This is done in the kernel configuration that comes with \textbf{\project}.
 
 \subsection{\text{\project} implementation}
 \label{sub-sec:switch-lkl}
 
-The linux kernel offers an interface to configure bridging. This interface is used
+The Linux kernel offers an interface to configure bridging. This interface is used
 by existing user space applications, so this is the interface we chose for the switch device. 
-It uses the ioctl syscall(lkl_sys_ioctl in LKL):
+It uses the ioctl syscall(lkl_sys_ioctl in \textbf{LKL}):
 \begin{description}
   \item[SIOCBRADDBR] \hfill \\
-  Is used to create a new bridging virtual inteface. It takes the name of the new interface as parameter.
+  Is used to create a new bridging virtual interface. It takes the name of the new interface as parameter.
   \item[SIOCBRDELBR] \hfill \\
   Is used to destroy a bridging interface. It takes the name of the new interface as parameter.
   \item[SIOCBRADDIF] \hfill \\
   Is used to add a physical interface as a port to the bridge. It takes as parameter a ifreq structure containing
-the interface index of the phyisical interface and the interface name of the bridge.
+the interface index of the physical interface and the interface name of the bridge.
   \item[SIOCBRDELIF] \hfill \\
   Is used to delete a physical interface from the bridge. It takes as parameter a ifreq structure containing
   \item[SIOCDEVPRIVATE] \hfill \\
@@ -100,7 +101,7 @@ An example of adding a new bridge interface:
 \subsection{Device tests}
 \label{sub-sec:switch-tests}
 
-For testing the capabilities of the switch we have done a small test containg a few switches. We will attach two LKL programs at the Glasgow and London switches to see if the can exchange packets through the switches. STP will be enabled so we will take a look at it too.
+For testing the capabilities of the switch we have done a small test containing a few switches. We will attach two \textbf{LKL} programs at the Glasgow and London switches to see if the can exchange packets through the switches. STP will be enabled so we will take a look at it too.
 
 The topology consists of three switches(London, Glasgow and Manchester) connected in a triangle. Each connection between them is done through a hub, but they will not taken into consideration for the test:
 
@@ -123,20 +124,23 @@ The topology consists of three switches(London, Glasgow and Manchester) connecte
   \end{table}
 \end{center}
 
-The full configuration can be found in the devices configuration file. The hypervisor's config file
+The full configuration can be found in the devices configuration file. The hypervisor's configuration file
 ca be found in tests/hypervisor.test/switches in the git repository\footnote{\url{http://github.com/sorindumitru/lkl-net}}.
-The switches's config file are found in tests/stp/switch.hostname.
+The switches's configuration file are found in tests/stp/switch.hostname.
 
 A \textbf{LKL} application was built to help us test the devices. It acts like a host. In order to start it
 a few parameters must be specified:
-\begin{lstlisting}
+\begin{lstlisting} 
+  -l, --lkl 		     -use lkl syscalls
   -a, --address=IPv4 address -IPv4 address for the lkl interface
   -n, --netmask-length=int   -IPv4 netmask length for the lkl interface
   -d, --default=IPv4 address -IPv4 default route
+  -p, --port=port            -Port of the hub used for the connection
   -g, --gateway=IPv4 address -IPv4 gateway for lkl-the address of the system where the hub is located
   -i, --interface=string     -LKL interface name
   -m, --mac=mac address      -MAC address for the lkl interface
   -r, --role=client|string   -Role of the application
+  -t, --to=IPv4 addres       -Only for the client, specifies the address of the server
 \end{lstlisting}
 It is built as both a client and server, its role being specified by the --role option. The client
 sends a string to the server, the server prints from whom the message came and then the client prints
@@ -188,7 +192,9 @@ eth0 (2)
  flags			
 \end{lstlisting}
 On the Glasgow switch on of the ports from the bridge is in the blocking state
-so we know that STP is working.
+so we know that STP is working. The time that it takes the topology to converge
+is the standard STP convergence time, 50 seconds. Tests have been done on bigger
+topologies and the convergence time has not changed.
 
 \section{Firewall}
 \label{sub-sec:firewall-impl}
@@ -196,11 +202,11 @@ so we know that STP is working.
 \subsection{Linux support}
 \label{sub-sec:firewall-lin}
 
-IPtables is the user space program used in linux to control the firewall tables from the kernel. It is based
-ont the netfitler project, which was started in 1998 by Rusty Russell. Prior to this, ipchain was used to do
+IPtables is the user space program used in Linux to control the firewall tables from the kernel. It is based
+ont the netfilter project, which was started in 1998 by Rusty Russell. Prior to this, ipchain was used to do
 this task in Linux 2.2 and ipfwadmin in Linux 2.0.
 
-Netfilter is framework for packet mangling. It defines per protocol hooks, which are points in the network code
+Netfilter is framework for packet mangling. It defines per protocol hook points, which are points in the network code
 where the framework is called. Ipv4 defines 5 such points:
 \begin{itemize}
   \item PREROUTING. It is called after the packet is received but after sanity checks have been made on it.
@@ -209,22 +215,24 @@ where the framework is called. Ipv4 defines 5 such points:
   \item FORWARD. It is called if the destination of the packet isn't this machine.
   \item POSTROUTING. It is called before the packets are sent to the network driver.
 \end{itemize}
+Hooks can be attached to this points, which will be called each time a packet passes through it.
+
 The route that the packets take is described in \figref{img:netfilter}.
 \fig[scale=0.5]{src/img/netfilter.pdf}{img:netfilter}{Netfilter hooks}
 
 The ip_tables kernel module uses the netfilter framework to define tables that can be used to build firewall rules.
-Each table containes on or more chains the map to the netfilter hooks previously discused. 
+Each table contains on or more chains the map to the netfilter hooks previously discussed. 
 The IPv4 protocol has three tables defined:
 \begin{itemize}
   \item filter. The filter table is used, as its name implies, to filter packets, it should not be used for packet mangling. The chains
-avaible in this table are INPUT, OUTPUT and FORWARD.
+available in this table are INPUT, OUTPUT and FORWARD.
   \item nat. The nat table is used for network address translation. The chains that are available in this table are PREROUTING,
  POSTROUTING and OUTPUT
   \item mangle. The mangle table is used to modify packets, it can be used for example to change the TTL field in
 the IPv4 header. The mangle table can use all five hooks of the IPv4 protocol.
 \end{itemize}
 
-Each chain contains a number of rules. When a packet passes through the netfilter hook coresponding to the chain each rule is checked
+Each chain contains a number of rules. When a packet passes through the netfilter hook corresponding to the chain each rule is checked
 for a match; if a match is found, the action of the rule is applied; if no rule matches the packet, the policy of the chain is applied.
 The predefined chains have a default policy of \textbf{ACCEPT}, meaning that if no rule matches the packet, it is accepted, but this behavior
 can be changed. Users can define new chains; this chains have no policy, instead they return to the calling chain if no rule is matched.
@@ -233,13 +241,13 @@ The jump option(-j CHAIN) can be used to call a user defined chain.
 An iptables rule is represented by an ipt_entry structure in the kernel. It contains an ipt_ip structure, information used
 to retrieve the target, a list of ipt_matches structures and a target. The ipt_ip structure contains general information for
 level 3 matching of packets: source and destination address, input and output port, protocol. Ipt_matches allow matching of
-packets based on more parameters than standard rules, for example address type. The target picks the submodule that handles the 
-packet and stores additional data used by the module.
+packets based on more parameters than standard rules, for example protocol type or port. The target picks the submodule that 
+handles the packet and stores additional data used by the module.
 
 \subsection{\text{\project} implementation}
 \label{sub-sec:firewall-lkl}
 
-Libiptc is the library used by the iptables project to comunicate with netfilter. It allows
+Libiptc is the library used by the iptables project to communicate with netfilter. It allows
 querying the kernel for netfilter rules, and saving changes back to the kernel. The data from
 the kernel comes as one blob:
 \lstset{language=C,caption=Getting firewall rules,label=lst:sgetrule}
@@ -249,20 +257,21 @@ getsockopt(socket, IPPROTO_IP, SO_GET_INFO, &info, &size);
 size = sizeof(ipt_get_entries) + info.size;
 getsockopt(socket, IPPROTO_IP, SO_GET_ENTRIES, buffer, &size);
 \end{lstlisting}
-libitpc parses the entries from it, puts each rule in its chain and stores the chains in an iptc_handle. This allows for a simple way
-of view and working with the rules, because we don't have to parse the blob each time. When we add a new rule
-it is not imediately added to the kernel, instead they are added to the iptc_handle. When we want them to be added to the kernel,
-this is done through iptc_commit which call setsockopt:
-\lstset{language=C,caption=Commiting changes,label=lst:ssetrules}
+Libitpc then parses the entries from it, puts each rule in its chain and stores the chains in an iptc_handle. 
+This allows for a simple way of viewing and working with the rules, because we don't have to parse the blob 
+each time. When we add a new rule it is not added immediately to the kernel, instead they are added to 
+lists in the iptc_handle. When we want them to be added to the kernel, this is done through iptc_commit function
+which calls setsockopt:
+\lstset{language=C,caption=Committing changes,label=lst:ssetrules}
 \begin{lstlisting}
 struct ipt_replace *replace;
 // add entries from iptc_handle to replace
 setsockopt(socket, IPPROTO_IP, SO_GET_ENTRIES, replace, sizeof(*replace) + replace->size);
 \end{lstlisting}
-We have ported this library to the LKL project so we can use it in the rest of the code. This was mostly done by replacing
-the syscalls from it with lkl syscall( lkl_sys prefix).
+We have ported this library to the \textbf{LKL} project so we can use it in the rest of the code. This was mostly done by replacing
+the syscalls from it with lkl syscall( lkl_sys_ prefix).
 
-The targets used by the filtering module of \text{\project} uses only the standard data. This is one of the simplest targets
+The targets used by the filtering module of \text{\project} uses only the standard target. This is one of the simplest targets
 used by iptables; it contains only data about its size and the verdict for the packet( ACCEPT, DROP or DENY).
 
 \begin{description}
@@ -275,7 +284,7 @@ to the kernel. This is done with the following command:
 filter -A chain [-s saddr -d daddr -i iif -o oif] -j ACCEPT|DROP|DENY
 \end{lstlisting}
 \item[Removing rules] \hfill \\
-Removing a rules is done by specifing the chain and rule number:
+Removing a rules is done by speciyfing the chain and rule number:
 \lstset{language=zsh,caption=Deleting a rule,label=lst:sdelrule}
 \begin{lstlisting}
 filter -D chain rulenumber
@@ -291,8 +300,9 @@ filter -L [chain]
 \subsection{Device tests}
 \label{sub-sec:firewall-tests}
 
-Testing the device can be done through a simple topology described in the \figref{img:firewalls}. It contains only a
-router that will also be used as a firewall. A couple of rules will be applied and we will se their effect.
+Testing the device can be done through a simple topology as the one described in the \figref{img:firewalls}. 
+It contains only a router that will also be used as a firewall. A couple of rules will be applied 
+and we will see their effect.
 
 \fig[scale=0.5]{src/img/firewall.png}{img:firewalls}{Firewall test}
 
@@ -311,8 +321,8 @@ router that will also be used as a firewall. A couple of rules will be applied a
   \end{table}
 \end{center}
 
-We would like to see if, with no rule applied, it accepts all packets and after rules are addded, only the denied packets
-are drope, other being forwarded.
+We would like to see if, with no rules applied, it accepts all packets and after rules are added, only the denied packets
+are dropped, others being forwarded.
 
 For this setup we connected the host application to the hubs using the following commands:
 \begin{lstlisting}
@@ -326,7 +336,7 @@ We add a rule blocking the 192.168.2.100 client with the following command:
 \begin{lstlisting}
 GreatWall>filter -A FORWARD -s 192.168.2.100/32 -j DROP
 \end{lstlisting}
-A listing of all the rules shows the rule in place:
+A listing of all the rules shows the rule is in place:
 \begin{lstlisting}
 GreatWall>filter -L
 Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
@@ -340,6 +350,8 @@ We then add a rule blocking all packets with the destination network 192.168.1.0
 GreatWall>filter -A FORWARD -d 192.168.1.0/24 -j DROP
 \end{lstlisting}
 As expected, all the packets are now blocked.
+
+Further tests for the device can be in found in \ref{chapter:testing}
 
 \section{Bridge}
 
@@ -365,7 +377,7 @@ One of the objectives of the project was to not isolate the simulated devices fr
 programs. Two possible solutions for this were found:
 \begin{itemize}
   \item Using raw sockets as a base for an interface.
-  \item Creatinga a new device that uses a TAP interface to interconect a normal application.
+  \item Creating a new device that uses a TAP interface to interconnect with a normal application.
 \end{itemize}
 
 At first we tried to use the first approach but we encountered some problems with network loops.
@@ -377,7 +389,7 @@ us to watch the packet on the network.
 
 As it can be seen in \figref{img:bridge} the bridge has two interfaces; the TAP interface that is used to 
 receive packets from user space programs and a socket interface that is used to connect, through a hub, to 
-a LKL device. Upon receiving a packets it modifies it by adding the total length of it and sends it to a hub 
+a \textbf{LKL} device. Upon receiving a packets it modifies it by adding the total length of it and sends it to a hub 
 through a socket.
 
 \subsection{Device tests}
@@ -428,14 +440,13 @@ Later on we can see that packets are being exchanged between the client and the 
 \section{Hypervisor}
 \label{sec:hypervisor2}
 
-Devices can be started individualy, by giving them a configuration file or no file, in which case the device
+Devices can be started individually by giving them a configuration file or no file, in which case the device
 will be empty(no interfaces). After the device is started the user can proceed to issue commands( see \appref{chapter:commands} 
 for a complete listing of available commands) to configure the device. Starting a large number of
 devices and configuring them can a time-consuming task, so we decided on building a GUI application to visualise and configure
-the topology, as well as starting and stoping the devices.
+the topology, as well as starting and stopping the devices.
 
 \fig[scale=0.33]{src/img/gui.png}{img:gui}{GUI}
-
 
 The GUI was built using the GTK library\footnote{\url{http://www.gtk.org/}}. For the topology we created a new GTK widget
 that allows us to create and place new devices in the topology as well as creating links between them. In order to draw
@@ -462,26 +473,26 @@ the saved configuration of the devices.
 \section{Console and configuration file}
 \label{sec:dev-conf}
 
-Because we don't always want to start with an empty device and wanted to make de application easy to use, we decieded that the
-devices should have configuration, that they could save their current configuration and reopen upon restart. 
+Because we don't always want to start with an empty device and wanted to make de application easy to use, we decided that the
+devices should have a configuration file and that they could save their current configuration and reopen it upon restart. 
 
-We used flex \footnote{\url{http://flex.sourceforge.net}} to parse configuration files. The flex acts like a lexicar analyser, 
+We used flex \footnote{\url{http://flex.sourceforge.net}} to parse the configuration files. Flex is a lexical analyser, 
 parsing the input and transforming them into tokens. Flex is called through the yylex() function to read in a new symbol, and the
-symbol is received through the yytext variabile. Checks are done on the variabile and on the input so the function that reads in 
-the config file acts like a parser. All the configuration variabiles are stored in a config_info_t structure.
+symbol is received through the yytext variable. Checks are done on the variable and on the input so the function that reads in 
+the configuration file acts like a parser. All the configuration variables are stored in a config_info_t structure.
 
 A sample configuration for a switch with two ports:
 \lstset{language=inform,caption=Example switch configuration file,label=lst:dconf}
 \lstinputlisting{src/code/conf}
 
-At the top of the configurate general informations about the device can be found. Hostname is the name of the device;
+At the top of the configuration general informations about the device can be found. Hostname is the name of the device;
 The ipaddress and the port are the IPv4 address of the machine where the device is started and the port that the device
 uses to communicate with the hub; they are not of much use to the device, but are important for the hypervisor.
 After that comes a list of interfaces.	Each interface contains the information to create a new interface a bring it up.
-The gateway, port and type are used to create a link with a hub; the type field is necesary because the connection between
+The gateway, port and type are used to create a link with a hub; the type field is necessary because the connection between
 to devices can be made through a hub or directly between the devices. 
 
-The switch requires some extra configuration in order to be able to create mutiple bridging virtual interfaces. 
+The switch requires some extra configuration in order to be able to create multiple bridging virtual interfaces. 
 Under the switch portion multiple defined interfaces can be grouped into a bridging interface.
 
 The hypervisor has a slightly different configuration file:
@@ -489,19 +500,19 @@ The hypervisor has a slightly different configuration file:
 \lstinputlisting{src/code/hyperconf}
 This configuration file has a list of the devices from the topology and for each device the information needed by the hypervisor to
 start the device. Each device have a few variables in common, such as the type of the device, their hostname and their position on
-the topology in the gui. LKL devices, such as the switch and the firewall, need a configuration file, so it is specified in the
-config file. The hub needs to know the port on which it listens, so it is given to it.
+the topology in the GUI. \textbf{LKL} devices, such as the switch and the firewall, need a configuration file, so it is specified in the
+configuration file. The hub needs to know the port on which it listens, so it is given to it.
 
 Although basic configuration( routing activation, creating virtual bridging interfaces) can be done through the 
 configuration files, it was necessary to implement a command line interface(CLI) for the devices to do additional configurations; 
 for example to add a rule to a firewall table or to list the device's interface. We used the readline library, that is used in various
 other console-like applications, the create this CLI. Using it, it was very easy to integrate history and autocomplete in our CLI.
 
-To implement history into the the command line we only needed to inform autocomplete of the inserted commands. This is done through the
-add_history function. After this the complete history of the commands can be browesed using the up and down keys.
+To implement history into the command line we only needed to inform autocomplete of the inserted commands. This is done through the
+add_history function. After this the complete history of the commands can be browsed using the up and down keys.
 
-Autocompletion is added by modifing a function pointer from libreadline, rl_completion_entry_function. The function to which it points
-is called every time when TAB is pressed. The function then parses the list of avaible commands and sees what possible completions
+Autocompletion is added by modifying a function pointer from libreadline, rl_completion_entry_function. The function to which it points
+is called every time when TAB is pressed. The function then parses the list of available commands and sees what possible completions
 can follow. 
 
 The complete list of device commands can be found in \appref{chapter:commands}. Not all of these commands are available in every device.

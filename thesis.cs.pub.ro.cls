@@ -24,7 +24,7 @@
 
 \usepackage{makeidx}
 
-\usepackage[top=2.54cm, bottom=2.54cm, left=2.54cm, right=2.54cm]{geometry}
+\usepackage[top=3cm, bottom=3cm, left=3cm, right=2.54cm]{geometry}
 \setlength{\headheight}{1.20cm}
 \setlength{\headsep}{0.50cm}
 

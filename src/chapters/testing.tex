@@ -1,4 +1,5 @@
 \chapter{Testing}
+\label{chapter:testing}
 
 \section{Round trip time and throughput}
 \label{sec:response-time}
@@ -9,7 +10,9 @@ a simple topology described in \figref{img:trans-test}. It contains a router wit
 a hub connected to it. The hub is added so we can connect a bridge to the router to be able to use
 existing user space tools for testing.
 
-\fig[scale=0.5]{src/img/trans.png}{img:trans-test}{Respons time test topology}
+\fig[scale=0.5]{src/img/trans.png}{img:trans-test}{Response time test topology}
+
+The configuration of the devices:
 
 \begin{center}
   \begin{table}[htb]
@@ -57,36 +60,41 @@ rtt min/avg/max/mdev = 9.414/114.034/203.237/32.603 ms, pipe 17, ipg/ewma 13.028
 
 \begin{itemize}
   \item \textbf{Throughput}. Throughput or network throughput is the average rate of successful message delivery 
-over a communication channelAs it can be seen in the output, 1000 packets have been sent in 13242ms. As this
+over a communication channel. As it can be seen in the output, 1000 packets have been sent in 13242ms. As this
 is a round trip. The throughput of the device is situated somewhere around 1000 packets per 6621ms. The cause of this
 low throughput will be discussed at Round Trip Time.
   \item \textbf{Round Trip Time.}  Round trip time is the length of time it takes for a signal to be sent plus the 
 length of time it takes for an acknowledgement of that signal to be received. Ping reports that rtt is
 rtt min/avg/max/mdev = 9.414/114.034/203.237/32.603 ms. The network driver waits in a blocking state in a recv
-call for the packets to arrive. This means that its speed is dependen on the host operating system. If it will
+call for the packets to arrive. This means that its speed is dependent on the host operating system. If it will
 always be awaken fast when a packet arrives then the speed will be high, otherwise it will be low. This has been
 noticed in practice withe packets sent by ping having a rtt as low as 0.3 ms or as high as a 230ms.
   \item \textbf{Interpacket gap/Exponentially weighted moving average (ipg/ewma).} Interpacket gap is the minimum idle period
 between transmission of Ethernet frames, this allows devices to prepare for reception of the next frame. Exponentially wighted moving
 average applies weighting factors that decrease exponentially. This give greater importance to recent data while still not discarding
 old data. The ones calculated by ping are ipg/ewma 13.028/111.240 ms.
+\end{itemize}
 
 We tested with a few different sizes for the payload of the packets and we didn't see any important change in these
-factors. This means that the bottleneck in the network is not the driver or the way it handles data, but the time
+factors. The only parameter that changes was the minimum rount trip time.
+This means that the bottleneck in the network is not the driver or the way it handles data, but the time
 that the native system allows the driver thread to run.
 
-\end{itemize}
+Iotop reported that the I/O activity of the router stayed in the 20-40 kb/s zone, but we noticed a peek
+at a 170Kb/s. This might have been an anomaly.
+
 \section{Scalability}
 \label{sec:scalability}
 
-One of the objectives of the project was to be able to simulate a large nmber of devices. For this we have
-created a topology generator that ce be found in scripts/generator.py. It generates a topology of
-x by y switches connected in a full mesh. To create a 4 by 4 topology in the folder test:
+One of the objectives of the project was to be able to simulate a large number of devices. For this we have
+created a topology generator written in python that can be found in scripts/generator.py. It generates a topology of
+x by y switches connected in a full mesh. To create a 4 by 5 topology in the folder test the following command
+should be issued:
 \begin{lstlisting}
-python scripts/generator.py 4 4 test
+python scripts/generator.py 4 5 test
 \end{lstlisting}
 
-Ping between the corners of the topology
+Ping between the corners of the topology:
 \begin{lstlisting}
 PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
 64 bytes from 192.168.20.1: icmp_seq=1 ttl=64 time=686 ms
@@ -100,7 +108,7 @@ It can be seen that the time is greater than the single device
 tests, but this is normal as there are more devices in the topology(
 the shortest path in the topology crosses 7 devices).
 
-Ping between the corners of the topology with the flood options:
+Ping between the corners of the topology with the flood option:
 \begin{lstlisting}
 PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
 .............................................^C                                
@@ -112,13 +120,18 @@ rtt min/avg/max/mdev = 100.066/568.539/1026.571/116.873 ms, pipe 79, ipg/ewma 12
 We have looked at the devices using top. The switches take between 1.6 and 2.1 Mb of memory. This is
 because the switches have different number of interfaces. The ones in the corner having only 2 while
 the ones in the middle have 4. Although the devices are given 16Mb of memory, the native system
-only reports only the memory that is in use. Cpu time was hard the notice as the devices are only active
+only reports only the memory that is in use. CPU time was hard the notice as the devices are only active
 when a packets passes their interfaces. Only when the flood option was used with ping, we noticed
 4\% use of the CPU by a switch, but this also varied greatly. 
 
 We have done further test on the firewall to see how much memory it requires when a large numbering
 of rules are added. The required memory increases lineary with the number of rules; every additional
 100 rules require about 0.2Mb of memory. This can be seen \figref{img:memory-test}
+
+Another thing that we have notices is the number of context switches that the native operating
+system has to do when a device was flooded. Under normal circumstance these stayed in the hundreds
+zone( 300-700 context switches per second) but when ping was issued, This rapidly increased to over
+5000 context switches per second.
 
 \fig[scale=0.5]{src/img/memory.png}{img:memory-test}{Memory use on firewall}
 
@@ -127,12 +140,12 @@ of rules are added. The required memory increases lineary with the number of rul
 
 The next test is more complex then the ones before, combining more features of the application into
 one topology. We will be connecting three external applications to our \textbf{\project} topology. One of
-the is a webserver, serving request for the www.lklnet.org domain, and the other is a DNS server to
+the is a web server, serving request for the www.lklnet.org domain, and the other is a DNS server to
 translate names for the lklnet.org zone. The third application is the browser with which we will
 be accessing the web page. The \textbf{\project} topology contains one router and one switch and the hubs
 that interconnect them. Bridges are then connected to this hubs to connect the external applications and
 routes are added through the tap interfaces. The host computer should then be made to use the created
-DNS server through the \textbf{\project} network. This can be done by adding nameserver 129.168.100.200
+DNS server through the \textbf{\project} network. This can be done by adding nameserver 192.168.100.200
 in /etc/resolv.conf. After this the web browser can be used to receive the web page. The topology is shown
 in \figref{img:complex-test}
 
@@ -191,7 +204,7 @@ tcpdump -ne -i tap0 "udp and src port 53"
 
 \fig[scale=0.5]{src/img/web.png}{img:complex-test}{Complex test topology}
 
-After the the normal test was run and the webpage was displayed in the browser, we wanted to protect the DNS server from 
+After the normal test was run and the web page was displayed in the browser, we wanted to protect the DNS server from 
 an outside DNS attack. For this we add the following rule to the router, which will now act as a firewall as well:
 \lstset{language=zsh, caption=, label=complex-firewall}
 \begin{lstlisting}
