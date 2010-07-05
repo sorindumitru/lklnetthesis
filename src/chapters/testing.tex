@@ -114,9 +114,87 @@ because the switches have different number of interfaces. The ones in the corner
 the ones in the middle have 4. Although the devices are given 16Mb of memory, the native system
 only reports only the memory that is in use. Cpu time was hard the notice as the devices are only active
 when a packets passes their interfaces. Only when the flood option was used with ping, we noticed
-4\% use of the CPU by a switch, but this also varied greatly.
+4\% use of the CPU by a switch, but this also varied greatly. 
+
+We have done further test on the firewall to see how much memory it requires when a large numbering
+of rules are added. The required memory increases lineary with the number of rules; every additional
+100 rules require about 0.2Mb of memory. This can be seen \figref{img:memory-test}
+\fig[scale=0.5]{src/img/memory.png}{img:memory-test}{Memory use on firewall}
 
 \section{Complex network}
 \label{sec:complex-network}
 
+The next test is more complex then the ones before, combining more features of the application into
+one topology. We will be connecting three external applications to our \textbf{\project} topology. One of
+the is a webserver, serving request for the www.lklnet.org domain, and the other is a DNS server to
+translate names for the lklnet.org zone. The third application is the browser with which we will
+be accessing the web page. The \textbf{\project} topology contains one router and one switch and the hubs
+that interconnect them. Bridges are then connected to this hubs to connect the external applications and
+routes are added through the tap interfaces. The host computer should then be made to use the created
+DNS server through the \textbf{\project} network. This can be done by adding nameserver 129.168.100.200
+in /etc/resolv.conf. After this the web browser can be used to receive the web page. The topology is shown
+in \figref{img:complex-test}
+
+\begin{center}
+  \begin{table}[htb]
+  \begin{center}
+  \begin{tabular}{| l | l | l | l | l |}
+    \hline
+      Hostname & Interface & IP & Interface & IP \\ \hline
+      GreatWall & eth0 & 192.168.100.1/24 & eth1 & 192.168.200.1/24 \\ 
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{Router config}
+  \label{table:complex-router}
+  \end{table}
+\end{center}
+
+\begin{center}
+  \begin{table}[htb]
+  \begin{center}
+  \begin{tabular}{| l | l | l | l | l | l | l |}
+    \hline
+      Hostname & Interface & MAC & Interface & MAC & Interface & MAC \\ \hline
+      Switch & eth0 & 00:bb:cc:00:01:01 & eth1 & 00:bb:cc:00:02:02 & eth2 & 00:bb:cc:00:01:02 \\
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{Switch config}
+  \label{table:complex-switch}
+  \end{table}
+\end{center}
+
+After the devices are started we can use the bridges to sniff the packets are three points of the topology.
+This will allow us to see how the network behaves. The following actions should be observed:
+\begin{itemize}
+	\item ARP request is made for the DNS server address
+	\item Switches broadcasts the packet
+	\item ARP response from the DNS server
+	\item DNS request from the web browser
+	\item DNS response from the DNS server
+	\item TCP connection
+	\item Web page request
+	\item Web page response
+	\item TCP hangup
+\end{itemize}
+
+For example to see the DNS request and response the following commands should be issued:
+\lstset{language=zsh, caption=DNS request and respons, label=lst:dnsrr}
+\begin{lstlisting}
+tcpdump -ne -i tap0 "udp and dst port 53"
+11:56:16.048401 b6:ff:df:62:6a:c2 > ce:8f:19:1a:81:d2, ethertype IPv4 (0x0800), length 70: 192.168.100.123.39465 > 192.168.100.200.53: 13412+ A? lklnet.org. (28)
+tcpdump -ne -i tap0 "udp and src port 53"
+11:55:28.439287 ce:8f:19:1a:81:d2 > b6:ff:df:62:6a:c2, ethertype IPv4 (0x0800), length 119: 192.168.100.200.53 > 192.168.100.123.44508: 42496*- 1/1/1 A 192.168.249.129 (77)
+\end{lstlisting}
+
 \fig[scale=0.5]{src/img/web.png}{img:complex-test}{Complex test topology}
+
+After the the normal test was run and the webpage was displayed in the browser, we wanted to protect the DNS server from 
+an outside DNS attack. For this we add the following rule to the router, which will now act as a firewall as well:
+\lstset{language=zsh, caption=, label=complex-firewall}
+\begin{lstlisting}
+filter -A forward -d 192.168.100.200 -j DROP
+\end{lstlisting}
+An input interface might be specified to further limit the scope of rule, but it was not necessary in this case.
+After the rule was added, the firewall blocks incoming packets for the DNS server.
