@@ -10,7 +10,7 @@
 
 \let\ExecuteOptions@ltx\ExecuteOptions
 \def\ExecuteOptions#1{%
- \ExecuteOptions@ltx{a4paper,10pt,oneside,onecolumn,final}%
+ \ExecuteOptions@ltx{a4paper,11pt,oneside,onecolumn,final}%
 }%
 \LoadClassWithOptions{report}
 \let\ExecuteOptions\ExecuteOptions@ltx
@@ -24,7 +24,7 @@
 
 \usepackage{makeidx}
 
-\usepackage[top=3.5cm, bottom=3.5cm, left=3.5cm, right=3cm]{geometry}
+\usepackage[top=2.54cm, bottom=2.54cm, left=2.54cm, right=2.54cm]{geometry}
 \setlength{\headheight}{1.20cm}
 \setlength{\headsep}{0.50cm}
 
@@ -38,7 +38,7 @@
 \usepackage{setspace}
 
 % saved by the spacing :)
-% \onehalfspacing
+%\onehalfspacing
 
 % hyper-references
 % http://www.tug.org/applications/hyperref/manual.html
@@ -194,7 +194,10 @@
 % (more info: http://www.tug.dk/FontCatalogue/)
 
 % TT font: Courier
-\usepackage{courier}
+% \usepackage{courier}
+
+\usepackage[T1]{fontenc}
+\usepackage{tgpagella}
 
 % SF font: Helvetica (default document font)
 % \usepackage[scaled]{helvet}
