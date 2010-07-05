@@ -197,8 +197,8 @@
 \usepackage{courier}
 
 % SF font: Helvetica (default document font)
-%\usepackage[scaled]{helvet}
-%\renewcommand*\familydefault{\sfdefault}
+% \usepackage[scaled]{helvet}
+% \renewcommand*\familydefault{\sfdefault}
 
 % command for specifying TODOs
 \newcommand{\todo}[1]{
