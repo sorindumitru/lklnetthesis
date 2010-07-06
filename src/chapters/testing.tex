@@ -68,7 +68,7 @@ length of time it takes for an acknowledgement of that signal to be received. Pi
 rtt min/avg/max/mdev = 9.414/114.034/203.237/32.603 ms. The network driver waits in a blocking state in a recv
 call for the packets to arrive. This means that its speed is dependent on the host operating system. If it will
 always be awaken fast when a packet arrives then the speed will be high, otherwise it will be low. This has been
-noticed in practice with packets sent by ping having a rtt as low as 0.3 ms or as high as a 230ms.
+noticed in practice with packets sent by ping having a rtt as low as 0.3 ms and as high as a 230ms.
   \item \textbf{Interpacket gap/Exponentially weighted moving average (ipg/ewma).} Interpacket gap is the minimum idle period
 between transmission of Ethernet frames, this allows devices to prepare for reception of the next frame. Exponentially weighted moving
 average applies weighting factors that decrease exponentially. This gives greater importance to recent data while still not discarding
@@ -148,7 +148,7 @@ translate names for the lklnet.org zone. The third application is the browser wi
 be accessing the web page. The \textbf{\project} topology contains one router and one switch and the hubs
 that interconnect them. Bridges are then connected to these hubs to connect the external applications and
 routes are added through the tap interfaces. The host computer should then be made to use the created
-DNS server through the \textbf{\project} network. This can be done by adding nameserver 192.168.100.200
+DNS server through the \textbf{\project} network. This can be done by adding "nameserver 192.168.100.200"
 in /etc/resolv.conf. After this the web browser can be used to receive the web page. The topology is shown
 in \figref{img:complex-test}
 
@@ -183,6 +183,8 @@ in \figref{img:complex-test}
   \label{table:complex-switch}
   \end{table}
 \end{center}
+The web browser is situatead at 192.168.100.123, the web server at 192.168.200.123 and the DNS server
+is at 192.168.100.200
 
 After the devices are started we can use the bridges to sniff the packets at three points of the topology.
 This will allow us to see how the network behaves. The following actions should be observed:
@@ -210,7 +212,7 @@ tcpdump -ne -i tap0 "udp and src port 53"
 \fig[scale=0.5]{src/img/web.png}{img:complex-test}{Complex test topology}
 
 After the normal test was run and the web page was displayed in the browser, we wanted to protect the DNS server from 
-an outside DNS attack. For this we add the following rule to the router, which will now act as a firewall as well:
+an outside DNS attack. For this we added the following rule to the router, which will now act as a firewall as well:
 \lstset{language=zsh, caption=, label=complex-firewall}
 \begin{lstlisting}
 filter -A forward -d 192.168.100.200 -j DROP

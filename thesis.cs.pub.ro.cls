@@ -194,10 +194,10 @@
 % (more info: http://www.tug.dk/FontCatalogue/)
 
 % TT font: Courier
-% \usepackage{courier}
+\usepackage{courier}
 
-\usepackage[T1]{fontenc}
-\usepackage{tgpagella}
+%\usepackage[T1]{fontenc}
+%\usepackage{tgpagella}
 
 % SF font: Helvetica (default document font)
 % \usepackage[scaled]{helvet}

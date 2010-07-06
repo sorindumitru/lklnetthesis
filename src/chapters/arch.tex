@@ -10,7 +10,7 @@ makes this a very difficult process. More than this, more than one million lines
 every new release of the kernel. This makes keeping pace with the development of the kernel very difficult.
 
 The Linux Kernel Library is a project that tries to make this process a little easier on the developer. It builds
-a library out of code of the kernel, that can be linked with other programs and they will be able to use functions
+a library out of code of the kernel that can be linked with other programs and they will be able to use functions
 from the kernel. The architecture of a typical \textbf{LKL} application can be seen in \figref{img:lkl}. The main logic of the application is at the
 application layer. When it needs to call kernel code, it does so through the syscall layer in the LKL kernel. The syscalls then
 call the submodules of the Linux kernel. Another way an application can call kernel code is through a driver. The drivers are split in two parts, a \textbf{LKL} part and a native part(see \ref{sec:net-driver} for an example).
@@ -75,9 +75,9 @@ Using the Linux Kernel Library we have implemented a few network devices describ
 here and in more detail in chapter \ref{chapter:impl}.
 
 Because of the way the network driver was implemented we could not watch the packets in the
-network using already available tools( tcpdump, wireshark). Also we would like that in a future version,
+network using already available tools( tcpdump, wireshark). We would also like that in a future version,
 the playback of the packets that went through the devices to be possible and to simulate the network layer.
-For this we have implemented some additional devices. The hub is used to simulate a connection between 
+For this we have implemented some additional devices, the hub and the bridge. The hub is used to simulate a connection between 
 two devices, all the traffic between them goes through a hub, and the bridge is used to connect non-\textbf{LKL} 
 applications to the \text{\project} devices.
 
@@ -146,7 +146,7 @@ Examples of firewalls include ipfw, iptables, pf in software or Cisco PIX in har
 Because of the rapid depletion of IPv4 addresses, private addresses were introduced in 
 RFC 1918\footnote{\url{http://tools.ietf.org/html/rfc1918}} and RFC 4193\footnote{\url{http://tools.ietf.org/html/rfc4193}}. 
 These addresses can be used at home or in the office where global addresses are not necessary. They are called 
-private because they are not allocated to a organization like other addresses and they are not accessible on the 
+private because they are not allocated to an organization like other addresses and they are not accessible on the 
 public Internet. The defined private addresses are:
 \begin{itemize}
   \item 10.0.0.0 - 10.255.255.255
@@ -224,6 +224,6 @@ of a hub to connect to another device, they do so through the hypervisor.
 The devices can be started and interconnected without a hypervisor, but it is easier to manage them
 using the hypervisor. Devices can be grouped inside a hypervisor configuration file and started with
 only one command. More then that, devices can use the hypervisor to find out informations about other devices
-It also provides a GUI.
+It also provides a GUI that makes it easier on the user to create and configure topologies.
 
 \fig[scale=0.5]{src/img/arch.pdf}{img:hlkl-net-arch}{LKL-net architecture}

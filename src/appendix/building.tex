@@ -11,6 +11,9 @@ and installing the application with only three well-known commands:
   make install
 \end{lstlisting}
 
+The \textbf{LKL} sources should be in ../linux-2.6 as this is
+what the build system requires.
+
 There are few required packages:
 \begin{itemize}
   \item flex
@@ -29,5 +32,5 @@ command:
 
 The first step is used to build \textbf{LKL} from the Linux kernel sources; it
 requires the \textbf{LKL} sources, their location is specified in a variable in
-Makefile.lkl. This step is only required only on the first build or
+Makefile.lkl. This step is only required on the first build or
 when something has changed in the \textbf{LKL} sources.
