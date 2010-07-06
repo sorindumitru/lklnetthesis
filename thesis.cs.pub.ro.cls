@@ -230,9 +230,9 @@
 \newcommand{\labelindexref}[2]{\hyperref[#2]{#1~\ref*{#2}}}
 \newcommand{\labelref}[2]{\hyperref[#2]{#1}}
 \newcommand{\appref}[1]{\hyperref[#1]{Appendix~\ref{#1}}}
-\newcommand{\figref}[1]{\hyperref[#1]{Figure~\ref{#1}}}
-\newcommand{\tabref}[1]{\hyperref[#1]{Table~\ref{#1}}}
-\newcommand{\chpref}[1]{\hyperref[#1]{Chapter~\ref{#1}}}
+\newcommand{\figref}[1]{\hyperref[#1]{figure~\ref{#1}}}
+\newcommand{\tabref}[1]{\hyperref[#1]{table~\ref{#1}}}
+\newcommand{\chpref}[1]{\hyperref[#1]{chapter~\ref{#1}}}
 
 % command for inserting labeled figures
 % Usage: \fig{file}{label}{caption}

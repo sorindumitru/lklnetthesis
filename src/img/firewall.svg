@@ -14,7 +14,7 @@
    id="svg2816"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="New document 2">
+   sodipodi:docname="firewall.svg">
   <defs
      id="defs2818">
     <marker
@@ -105,7 +105,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -182,13 +182,13 @@
     <text
        xml:space="preserve"
        style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-       x="334.6972"
+       x="315.84103"
        y="565.82318"
        id="text4650"><tspan
          sodipodi:role="line"
          id="tspan4652"
-         x="334.6972"
-         y="565.82318">/dev/null</tspan></text>
+         x="315.84103"
+         y="565.82318">DROP</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:3.94244456;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-end:url(#Arrow1Lend)"
        d="m 370.05255,352.03385 0,168.30617"
