@@ -24,8 +24,8 @@ The configuration of the devices:
     \hline
   \end{tabular}
   \end{center}
-  \caption{LKL-net devices}
-  \label{table:tdevices}
+  \caption{Device configuration}
+  \label{table:rtt-conf}
   \end{table}
 \end{center}
 
@@ -90,11 +90,14 @@ One of the objectives of the project was to be able to simulate a large number o
 created a topology generator written in python that can be found in scripts/generator.py. It generates a topology of
 x by y switches connected in a full mesh. To create a 4 by 5 topology in the folder test the following command
 should be issued:
+\lstset{language=text, caption=Generating a topology}
 \begin{lstlisting}
 python scripts/generator.py 4 5 test
 \end{lstlisting}
 
 Ping between the corners of the topology:
+
+\lstset{language=text, caption=Ping}
 \begin{lstlisting}
 PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
 64 bytes from 192.168.20.1: icmp_seq=1 ttl=64 time=686 ms
@@ -109,6 +112,7 @@ tests, but this is normal as there are more devices in the topology(
 the shortest path in the topology crosses 7 devices).
 
 Ping between the corners of the topology with the flood option:
+\lstset{language=text, caption=Ping}
 \begin{lstlisting}
 PING 192.168.20.1 (192.168.20.1) 56(84) bytes of data.
 .............................................^C                                

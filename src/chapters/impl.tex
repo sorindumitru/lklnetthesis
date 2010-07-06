@@ -53,7 +53,7 @@ Because the created interface is a virtual one, it cannot be
 used by itself to receive packets from the network. In order 
 to do this, physical interfaces must be added to the bridge. This 
 can be done using brctl:
-\lstset{language=zsh,caption=Adding a bridge interface,label=lst:sportadd}
+\lstset{language=zsh,caption=Adding a bridge port,label=lst:sportadd}
 \begin{lstlisting}
   #> brctl addif br0 eth0
 \end{lstlisting}
@@ -95,7 +95,7 @@ about STP.
 \end{description}
 An example of adding a new bridge interface:
 
-\lstset{language=C,caption=Add bridge,label=lst:cbridgeadd}
+\lstset{language=C,caption=Add bridge function,label=lst:cbridgeadd}
 \lstinputlisting{src/code/bridge/bridgeadd.c}
 
 \subsection{Device tests}
@@ -119,7 +119,7 @@ The topology consists of three switches(London, Glasgow and Manchester) connecte
     \hline
   \end{tabular}
   \end{center}
-  \caption{LKL-net devices}
+  \caption{Device configuration}
   \label{table:tdevices}
   \end{table}
 \end{center}
@@ -130,6 +130,7 @@ The switches's configuration file are found in tests/stp/switch.hostname.
 
 A \textbf{LKL} application was built to help us test the devices. It acts like a host. In order to start it
 a few parameters must be specified:
+\lstset{language=text, caption=Host options}
 \begin{lstlisting} 
   -l, --lkl 		     -use lkl syscalls
   -a, --address=IPv4 address -IPv4 address for the lkl interface
@@ -147,6 +148,7 @@ sends a string to the server, the server prints from whom the message came and t
 a message to show that it received the response from the server.
 
 For this setup we connected this application to the hubs using the following commands:
+\lstset{language=text, caption=Starting the hosts}
 \begin{lstlisting}
 bin/echo -l -i eth0 -a 192.168.1.1 -m 00:00:00:aa:bb:cc -n 24 -g 127.0.0.1 -d 192.168.1.10 -r server -p 50001
 bin/echo -l -i eth0 -a 192.168.1.2 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 192.168.1.10 -r client -p 50002 -t 192.168.1.1
@@ -154,14 +156,17 @@ bin/echo -l -i eth0 -a 192.168.1.2 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 19
 After the commands are issued, it can be seen that the messages are being sent so we know that the switches are working.
 
 We would also like to test STP. First it must be enabled:
+\lstset{language=text, caption=Enabeling STP}
 \begin{lstlisting}
 stp on brd0
 \end{lstlisting}
 After this we can gather information from the kernel:
+\lstset{language=text, caption=Getting STP information}
 \begin{lstlisting}
 show stp brd0
 \end{lstlisting}
 The result of the command on the Manchester switch in one of the test runs:
+\lstset{language=text, caption=STP information}
 \begin{lstlisting}
 8000.001122200302 bridge id		
 8000.001122200302 designated root	
@@ -316,7 +321,7 @@ and we will see their effect.
     \hline
   \end{tabular}
   \end{center}
-  \caption{LKL-net devices}
+  \caption{Device configuration}
   \label{table:tdevices}
   \end{table}
 \end{center}
@@ -325,6 +330,7 @@ We would like to see if, with no rules applied, it accepts all packets and after
 are dropped, others being forwarded.
 
 For this setup we connected the host application to the hubs using the following commands:
+\lstset{language=text, caption=Starting the hosts}
 \begin{lstlisting}
 bin/echo -l -i eth0 -a 192.168.1.100 -m 00:00:00:aa:bb:cc -n 24 -g 127.0.0.1 -d 192.168.1.1 -r server -p 50001
 bin/echo -l -i eth0 -a 192.168.2.100 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 192.168.2.1 -r client -p 50002 -t 192.168.1.100
@@ -333,10 +339,12 @@ bin/echo -l -i eth0 -a 192.168.2.200 -m 00:00:00:aa:bb:dc -n 24 -g 127.0.0.1 -d 
 Without any rules in the firewall, the packets are allowed to pass, as it can be seen from messages shown by the application.
 
 We add a rule blocking the 192.168.2.100 client with the following command:
+\lstset{language=text, caption=Adding a rule}
 \begin{lstlisting}
 GreatWall>filter -A FORWARD -s 192.168.2.100/32 -j DROP
 \end{lstlisting}
 A listing of all the rules shows the rule is in place:
+\lstset{language=text, caption=Listing the rules}
 \begin{lstlisting}
 GreatWall>filter -L
 Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
@@ -346,6 +354,7 @@ After the rule is in place the packets from the 192.168.2.100 host are not able 
 the 192.168.2.200 host are capable of reaching the server as proven by the printed messages.
 
 We then add a rule blocking all packets with the destination network 192.168.1.0/24 to see if all the packets are blocked:
+\lstset{language=text, caption=Adding a rule}
 \begin{lstlisting}
 GreatWall>filter -A FORWARD -d 192.168.1.0/24 -j DROP
 \end{lstlisting}
@@ -411,7 +420,7 @@ can be found in tests/firewall/
     \hline
   \end{tabular}
   \end{center}
-  \caption{LKL-net devices}
+  \caption{Device configuration}
   \label{table:tdevices}
   \end{table}
 \end{center}
@@ -419,6 +428,7 @@ can be found in tests/firewall/
 When the bridge is created it will create a virtual TAP interface,  tap0. This interface will be later used
 by user space programs such as tcpdump or wireshark to capture the packets:
 
+\lstset{language=text, caption=Arp request and response}
 \begin{lstlisting}
 #>tcpdump -i tap0 -v
 22:19:40.903299 ARP, Ethernet (len 6), IPv4 (len 4), Request who-has 192.168.2.1 tell 192.168.2.100, length 28
@@ -426,7 +436,7 @@ by user space programs such as tcpdump or wireshark to capture the packets:
 \end{lstlisting}
 
 Later on we can see that packets are being exchanged between the client and the server:
-
+\lstset{language=text, caption=TCP traffic}
 \begin{lstlisting}
     192.168.1.100.60000 > 192.168.2.100.50132: Flags [P.], cksum 0x8b00 (correct), seq 1:6, ack 1025, win 3920, options [nop,nop,TS val 4294937701 ecr 4294937605], length 5
 22:19:44.017636 IP (tos 0x0, ttl 63, id 11296, offset 0, flags [DF], proto TCP (6), length 52)
@@ -482,7 +492,7 @@ symbol is received through the yytext variable. Checks are done on the variable 
 the configuration file acts like a parser. All the configuration variables are stored in a config_info_t structure.
 
 A sample configuration for a switch with two ports:
-\lstset{language=inform,caption=Example switch configuration file,label=lst:dconf}
+\lstset{language=text,caption=Example switch configuration file,label=lst:dconf}
 \lstinputlisting{src/code/conf}
 
 At the top of the configuration general informations about the device can be found. Hostname is the name of the device;
@@ -496,7 +506,7 @@ The switch requires some extra configuration in order to be able to create multi
 Under the switch portion multiple defined interfaces can be grouped into a bridging interface.
 
 The hypervisor has a slightly different configuration file:
-\lstset{language=inform,caption=Example hypervisor configuration file,label=lst:hconf}
+\lstset{language=text,caption=Example hypervisor configuration file,label=lst:hconf}
 \lstinputlisting{src/code/hyperconf}
 This configuration file has a list of the devices from the topology and for each device the information needed by the hypervisor to
 start the device. Each device have a few variables in common, such as the type of the device, their hostname and their position on
