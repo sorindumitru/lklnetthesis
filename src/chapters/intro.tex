@@ -5,9 +5,9 @@
 \label{sec:proj}
 
 Network simulators predict the behavior of a network without actually needing any network devices.
-This greatly reduces the time and cost required of setting up a network using real devices. Although
+This greatly reduces the time and cost required by setting up a network using real devices. Although
 they have some disadvantages over real devices, speed and capabilities being the main ones, they
-make it easier for people such researchers or students to test a diverse number of topologies under
+make it easier for people such as researchers or students to test a diverse number of topologies under
 different circumstances. They are also useful for engineers who do quality assurance and performance
 testing.
 
@@ -18,7 +18,7 @@ There are also network simulators that are capable of describing not only networ
 using domain specific languages.
 
 \textbf{\project} builds on the capabilities offered by the \textbf{Linux Kernel Library} to create
-a complex network simulator capable of simulating end-to-end a complex network and a large number
+a complex network simulator capable of simulating end-to-end a complex network having a large number
 of devices. This means that each device will act like a Linux box, offering a full TCP/IP stack.
 More than this, the stack is proven to be correct by the users and developers of Linux. Advanced
 users are not limited to simulating devices and protocols, they can also create new protocols by
@@ -30,15 +30,15 @@ in the Linux kernel than writing it standalone.
 \subsection{Project Scope}
 \label{sub-sec:proj-scope}
 
-The main scope of the project is educational. Being able to easily create network topologies
-and simulate and watch packets as they traverse the network will make it easier for students
+The main scope of the project is educational. Being able to easily create network topologies, 
+simulate and watch packets as they traverse the network will make it easier for students
 to grasp the inner workings of network devices and protocols.
 
 Researchers would be able to test the existing TCP/IP stack and easily modify it and see
-the effects of the modifications. This might lead to better implementations of network
+the effects of the changes. This might lead to better implementations of network
 algorithms. Although it would require better knowledge of the Linux kernel, especially
 the networking subsystem, it is possible to add new protocols to the simulator. It would
-be very advantageous to be able to create new topologies on the fly to test this protocols.
+be very advantageous to be able to create new topologies on the fly in order to test these protocols.
 
 \subsection{Project Objectives}
 \label{sub-sec:proj-objectives}
@@ -47,13 +47,13 @@ be very advantageous to be able to create new topologies on the fly to test this
 running a full TCP/IP stack from the Linux kernel via \textbf{LKL}. It should be easy to create 
 network topologies and start quickly on simulating them. 
 
-The system shouldn't be isolated from the outside world. It would be advantageous to be able
+The system should not be isolated from the outside world. It would be advantageous to be able
 to include applications outside the \textbf{LKL} ecosystem. For example one could include
 a web server to server web pages to applications. Writing a new web server over \textbf{LKL} would
-be a wast off effort.
+be a waste of effort.
 
 Apart from being a network simulator, it will also be used to test the network subsystem of the \textbf{LKL}
-project. On such bug was fixed at the start of the project. The sequence number from the TCP header
+project. One such bug was fixed at the start of the project. The sequence number from the TCP header
 was computed wrong on every packet because of some bugs in the memory manipulation code.
 
 \section{Related Work}
@@ -63,7 +63,7 @@ was computed wrong on every packet because of some bugs in the memory manipulati
 
 Dynamips started initially as a Cisco 7200 emulator, but it now supports many other
 Cisco platforms (3600, 3700 and 2600). It is an emulator, meaning that the emulated
-devices act like the real devices, but also that is a little bit slow. It's
+devices act like the real devices, but also that is slower. Its
 homepage \footnote{\url{http://www.ipflow.utc.fr/index.php/Cisco_7200_Simulator}}
 states that it can go up to 1kpps. 
 
@@ -80,7 +80,7 @@ The emulated devices:
   \item Temperature and Voltage sensors
 \end{itemize}
 
-Although the devices in dynamips work exactly like a real Cisco device, there are a few disadvantages:
+Although the devices in Dynamips work exactly like real Cisco devices, there are a few disadvantages:
 \begin{itemize}
   \item It requires an IOS image.
   \item High memory and CPU usage, thus limiting the number of devices that can be emulated on one computer.
@@ -92,7 +92,7 @@ Although the devices in dynamips work exactly like a real Cisco device, there ar
 \subsection{Packet Tracer}
 
 Packet tracer is a proprietary application developed by Cisco. It is primary used as a learning tool
-in Cisco Certified Network Assistent courses offered by Cisco.
+in Cisco Certified Network Assistant courses offered by Cisco.
 Packet tracer is only a simulator and does not run code that runs on the Cisco devices, so
 it is unsuitable for a realistic simulation of complex networks. It is also closed source, so
 the devices cannot be modified. Although it does not offer true simulation of network topologies,
@@ -125,4 +125,4 @@ The code in listing \ref{lst:ns2} tells ns-2 to create two network nodes connect
 and to attach a host and a traffic generator. The last two lines start to simulation.
 
 Although it is a very powerful tool, ns-2 has a very high learning curve, as it can be seen
-n listing \ref{lst:ns2}, and it does not run real devices.
+in listing \ref{lst:ns2}, and it does not run real devices.
