@@ -1,10 +1,34 @@
-\chapter{Device command list}
-\label{chapter:commands}
+\chapter{Devices Commands}
+\label{ch:commands}
 
-\begin{description}
-  \item[test] \hfill \\
-  \lstset{language=zsh,caption=Test command,label=lst:ctest}
-  \begin{lstlisting}
-  Device> test
-  \end{lstlisting}
-\end{description} 
+\lstset{language=TeX,caption=Device commands ,label=lst:dev-commands}
+\begin{lstlisting}
+	dump <config file> : Dump config file
+	exit  : Exit
+	show interface bridge <bridge_name> : Show bridge interface
+	show mac-table <switch-name> : Show interface mac-table
+	show stp <bridge_name> : Show stp information
+	stp <on/off> <switch_name> : Set STP ON/OFF
+	add <network_address/netmask> <interface_name> <next hop address> : Add route
+	dump <config file> : Dump config file
+	exit  : Exit
+	filter <-A chain -j TARGET> : Firewall rules
+	interface add <name> <MAC address> <gateway address> <port no> : Add a new interface
+	interface address <interface name> <IPv4 address> <netmask length> : Change IP address
+	interface del <interface name> : Delete interface
+	interface down <interface name> : Set interface down
+	interface list  : List router interfaces
+	interface up <interface name> : Bring interface up
+	nat <-A chain -j TARGET> : NAT rules
+	remove <network_address/netmask> <interface_name> <next hop address> : Remove route
+	show route  : Show routing table
+	boot  : Boot up devices
+	create link <hub_name> <port> : Create new link
+	create router <config file> : Create new router
+	create switch <config file> : Create new switch
+	dump <file> : Dump configuration
+	exit  : Exit
+	show device  : Show device information
+	show devices  : Show devices
+	telnet <ip_address> <port_no> | dev <device_name> : Telent to a device
+\end{lstlisting}
