@@ -6,16 +6,16 @@
 The current implementation of \textbf{\project} is a Linux only program. It would be a good
 decision to port it to other operating systems, as it could gather more attention. 
 
-Most of the code from project is platform independent:
+Most of the code from \project is platform independent:
 \begin{itemize}
   \item flex is available for most operating systems
   \item libreadline is available for most operating systems
   \item GTK is crossplatform
-  \item There implementation of POSIX on other platform, and they are mostly POSIX-compliant
+  \item There are implementations of POSIX on other platforms, and they are mostly POSIX-compliant
 \end{itemize}
 
 There are \textbf{LKL} environments for most operating systems(excluding MacOs) so it will be easily possible to port it
-to other operating systems. The only part that has to moved to a different operating system is the network driver.
+to other operating systems. The only part that has to be moved to a different operating system is the network driver.
 But this can easily be done.
 
 \subsubsection{Physical layer simulation}
@@ -24,7 +24,7 @@ The initial role of the hub was to offer a way to control the traffic. In the cu
 only possible to view the packets that pass through the hub, but it would be beneficial to be able to also control
 it.
 
-Using the hub, it could be possible to simulate different ethernet speeds by limiting the number(or size) of the packets
+Using the hub, it could be possible to simulate different Ethernet speeds by limiting the number(or size) of the packets
 that pass through it.
 
 \subsubsection{Scenario replay}
@@ -36,8 +36,8 @@ in a learning environment.
 \subsubsection{Distributed hypervisors}
 
 The current implementation of the hypervisor is of only one hypervisor per topology. The number of devices that can be
-simulated can be increased by having more hypervisor on different computers communicating between each other. Each hypervisor 
-would manage their devices and communicate with the other hypervisors when they needed information about foreign devices.
+simulated can be increased by having more hypervisors on different computers communicating between each other. Each hypervisor 
+would manage its devices and communicate with the other hypervisors when they needed information about foreign devices.
 
 \subsubsection{Port Zebra to LKL-net}
 
