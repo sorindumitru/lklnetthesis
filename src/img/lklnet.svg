@@ -14,7 +14,7 @@
    id="svg2816"
    version="1.1"
    inkscape:version="0.47 r22583"
-   sodipodi:docname="New document 2">
+   sodipodi:docname="lklnet.svg">
   <defs
      id="defs2818">
     <inkscape:perspective
@@ -59,6 +59,20 @@
        inkscape:vp_y="0 : 1000 : 0"
        inkscape:vp_x="0 : 0.5 : 1"
        sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3451"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3451-5"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -67,18 +81,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.6"
-     inkscape:cx="113.08384"
-     inkscape:cy="286.58058"
+     inkscape:zoom="2.4"
+     inkscape:cx="105.41824"
+     inkscape:cy="295.83824"
      inkscape:current-layer="layer1"
      inkscape:document-units="px"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-width="1280"
-     inkscape:window-height="745"
-     inkscape:window-x="-2"
-     inkscape:window-y="-3"
+     inkscape:window-width="1366"
+     inkscape:window-height="717"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
      inkscape:window-maximized="1">
     <sodipodi:guide
        orientation="1,0"
@@ -97,7 +111,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -295,5 +309,35 @@
          y="261.98383"
          id="tspan2973"
          style="font-size:36px">devices</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="82.916664"
+       y="298.33334"
+       id="text3439"><tspan
+         sodipodi:role="line"
+         id="tspan3441"
+         x="82.916664"
+         y="298.33334">DEV</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="206.80144"
+       y="337.9147"
+       id="text3439-3"><tspan
+         sodipodi:role="line"
+         id="tspan3441-3"
+         x="206.80144"
+         y="337.9147">DEV</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="298.46811"
+       y="279.58139"
+       id="text3439-6"><tspan
+         sodipodi:role="line"
+         id="tspan3441-6"
+         x="298.46811"
+         y="279.58139">DEV</tspan></text>
   </g>
 </svg>
