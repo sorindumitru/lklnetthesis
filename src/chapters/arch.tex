@@ -6,20 +6,19 @@
 
 The Linux kernel contains more than nine million lines of reliable and frequently tested code. It would
 be very useful to use part of the code in other projects, but the fact that it is very interconnected
-makes this a very difficult process. More than this, more than one million lines of code gets changed on
-every new release of the kernel. This makes keeping in touch with the development of the kernel very difficult.
+makes this a very difficult process. More than this, more than one million lines of code get changed on
+every new release of the kernel. This makes keeping pace with the development of the kernel very difficult.
 
 The Linux Kernel Library is a project that tries to make this process a little easier on the developer. It builds
 a library out of code of the kernel, that can be linked with other programs and they will be able to use functions
 from the kernel. The architecture of a typical \textbf{LKL} application can be seen in \figref{img:lkl}. The main logic of the application is at the
 application layer. When it needs to call kernel code, it does so through the syscall layer in the LKL kernel. The syscalls then
-call the submodules of the Linux kernel. Another way an application can call kernel code is through a driver, because they can
-be split in two parts, a \textbf{LKL} part and a native part(see \ref{sec:net-driver} for an example).
+call the submodules of the Linux kernel. Another way an application can call kernel code is through a driver. The drivers are split in two parts, a \textbf{LKL} part and a native part(see \ref{sec:net-driver} for an example).
 
 \fig[scale=0.5]{src/img/lkl.pdf}{img:lkl}{LKL architecture}
 
 The library is implemented as a new architecture in the Linux kernel. This was made possible by the modular design of the Linux
-kernel. For this is necessary to implement a few primitives using native calls:
+kernel. For this it is necessary to implement a few primitives using native calls:
 \begin{itemize}
   \item Threads
   \item IRQ
@@ -28,7 +27,7 @@ kernel. For this is necessary to implement a few primitives using native calls:
 \end{itemize}
 
 These primitives and the native part of the drivers are the only things that have to be implemented on a new platform. The 
-code for a platform is usually only a two-three hundreds of lines of code. As it can
+code for a platform is usually only made of two-three hundreds lines of code. As it can
 be see in \figref{img:lkl} there are \textbf{LKL} environments for POSIX, APR, Win32 and NT kernel.
 
 \subsection{Network driver}
@@ -42,7 +41,7 @@ it is split into two parts, a kernel part(\textbf{LKL}) and
 a native part. Communication between the two parts
 is done through function calls and IRQs.
 Devices make syscalls to the driver in order to create and
-destroy interfaces and to change their state( UP or DOWN).
+destroy interfaces and to change their state(UP or DOWN).
 
 \section{LKL-net}
 \label{sec:lkl-net}
@@ -63,7 +62,7 @@ All of the modules enumerated above are used to create a set of devices that can
 to form a network. Apart from this devices, that run on top of \textbf{LKL}, there are a few devices designed
 to allow us to more easily interconnect the other devices.
 
-A typical \textbf{\project} involves a couple of devices(routers, switches, firewalls or NATs) and a few
+A typical \textbf{\project} topology involves a couple of devices(routers, switches, firewalls or NATs) and a few
 auxiliary devices to interconnect them. A hub to connect two devices together and a bridge to connect them to
 a outside application. These devices are described in more detail in the next section and \chpref{chapter:impl}.
 
@@ -77,7 +76,7 @@ here and in more detail in chapter \ref{chapter:impl}.
 
 Because of the way the network driver was implemented we could not watch the packets in the
 network using already available tools( tcpdump, wireshark). Also we would like that in a future version,
-the playback of the packets that wen through the devices to be possible and to simulate the network layer.
+the playback of the packets that went through the devices to be possible and to simulate the network layer.
 For this we have implemented some additional devices. The hub is used to simulate a connection between 
 two devices, all the traffic between them goes through a hub, and the bridge is used to connect non-\textbf{LKL} 
 applications to the \text{\project} devices.
@@ -88,12 +87,12 @@ A short summary of all the devices can be found in \tabref{table:tdevices}
 \label{sub-sec:router}
 
 A router is a layer three device that interconnects two or more computer networks. Its main responsibility
-is to interchange packets between the networks that it connects, without it there would be no connectivity 
+is to interchange packets between the networks that it connects. Without the router there would be no connectivity 
 between two different networks.
 
 The way it forwards the packets is by a routing table. Each entry in a routing table corresponds to a network
-and each entry has a outgoing interface or next hop address. The routes in the table are organize from the most specific
-to the most general ones; the most general route 0.0.0.0/0 is called the default route. When a router receives a packets it 
+and each entry has an outgoing interface and/or next hop address. The routes in the table are organized from the most specific
+to the most general ones; the most general route 0.0.0.0/0 is called the default route. When a router receives a packet it 
 first checks if it is the destination, in which case it passes it to the next network level, otherwise it checks the routing
 table. If a match is found than the packet is sent through the outgoing interface. This can be seen in figure 
 
@@ -102,41 +101,42 @@ table. If a match is found than the packet is sent through the outgoing interfac
 \subsection{Switch}
 \label{sub-sec:switch}
 
-A switch is a layer two devices that interconnects devices on the same network( network segments). Its role is 
-to copy bits(packets) form on port to another very fast. It forwards packets based on the hardware or MAC address. 
+A switch is a layer two devices that interconnects devices on the same network(network segments). Its role is 
+to copy bits(packets) form one port to another very fast. It forwards packets based on the hardware or MAC address. 
 For this it uses a CAM table to know on which port to forward the packet. 
 
 When a switch is first started it does not know about the devices that are connected to it. When a packet arrives
-at the switch it address its source MAC address to the CAM table and forwards the packet on all the other port, because
-it does not know on which of them is the destination. When a packet with a known destination address arrives at the
+at the switch it adds its source MAC address to the CAM table(if that address is not already present in the CAM table) 
+and forwards the packet on all the other ports, because
+it does not know on which of them the destination is. When a packet with a known destination address arrives at the
 switch it only forwards it to the port on which the destination MAC address is.
 
 Switches are generally layer two devices, but are not limited to this. Layer 3 switches exists, that are capable of 
 interconnecting different networks. Linux switches, being implemented on top of a Linux box, are capable of working
-at all the levels(see ebtables\footnote{\url{http://ebtables.sourceforge.net/}} for a way to advanced packet filtering
+at all OSI layers(see ebtables\footnote{\url{http://ebtables.sourceforge.net/}} for a way to advanced packet filtering
 on a switch), but the device we implemented works as a traditional switch, only on layer 3.
 
 \subsection{Firewall}
 \label{sub-sec:firewall}
 
-A firewall is network device that permits or denies traffic based on a set of rules. They can be implemented either in
+A firewall is a network device that permits or denies traffic based on a set of rules. They can be implemented either in
 hardware or in software. They are used to block unauthorized access from outside a secure network or to limit the access
 from the inside to possible dangerous networks. It is generally placed on the edge of the network.
 
 A firewall uses a rule set to establish if a packets should be allowed to pass or be dropped. The rules can be defined
-by a user or default rules ( mostly drop all or accept all) can apply. When a packets enters the firewall all rule
+by a user or default rules (mostly drop all or accept all) can apply. When a packets enters the firewall all rules
 are inspected in the order that they appear in the rule set; if a match is found, the action of the rule is applied
 (ACCEPT or DROP), if no match is found, the default rule is applied.
 
 There are two types of firewalls:
 \begin{itemize}
-  \item \textbf{Stateless.} Stateless firewall are not capable of connection tracking, they can not be used block
+  \item \textbf{Stateless.} Stateless firewall are not capable of connection tracking, they can not be used to block
 connections by their state(session initiation, established). 
   \item \textbf{Statefull.} Consume more resources then stateless firewalls, but they are able to do more complex 
 decision based on the state of the connection.
 \end{itemize} 
 
-Examples of firewall include ipfw, iptables, pf in software or Cisco PIX in hardware.
+Examples of firewalls include ipfw, iptables, pf in software or Cisco PIX in hardware.
 
 \fig[scale=0.4]{src/img/firewall.pdf}{img:arch-firewall}{PAT}
 
@@ -157,7 +157,7 @@ public Internet. The defined private addresses are:
 Another mechanism is \textbf{network address translation(NAT)}. It can be used in connection with private addresses to create
 large local networks that use few global addresses but still remain connected to the Internet. 
 
-NAT modifies IPv4 information in packet as it passes a device to remap an IP address space into another. There are two types of
+NAT modifies the IPv4 information in a packet as it passes a device to remap an IP address space into another. There are two types of
 NAT:
 \begin{itemize}
   \item \textbf{Basic NAT.} Is used only to translate one address space into another. Basic NAT does not alleviate the need
@@ -169,9 +169,9 @@ to a few(or only one) public address.
 \fig[scale=0.4]{src/img/nat.pdf}{img:impl-nat}{PAT}
 
 NAT is not a perfect solution. It does not guarantee end-to-end connectivity because some internet protocols embed the source
-ip address in their control traffic. On such example is FTP. It uses two ports, one for control and one for data, so it might receive
+ip address in their control traffic. One such example is FTP. It uses two ports, one for control and one for data, so it might receive
 packets from different sources although they come from the same device. In FTP this can be avoided using passive mode, but some other 
-protocols don't offer this possibility.
+protocols do not offer this possibility.
 
 \subsection{Auxiliary devices}
 \label{sub-sec:auxdev}
@@ -179,11 +179,11 @@ protocols don't offer this possibility.
 \subsubsection{Hub}
 
 A hub is a layer one device; it connects multiple devices into a single network segment. It does not do any checks on the packets
-, only sends bits from one port to all the other ports.  It is much more inefficient than a switch 
-because it does not make any decisions about the packet, although it's speed is greater than that of a switch especially because
+, it only sends bits from one port to all the other ports.  It is much more inefficient than a switch 
+because it does not make any decisions about the packet, although its speed is greater than that of a switch especially because
 of this reason.
 
-Although it's main use is to create network segments, it can be used for other purposes. 
+Although its main use is to create network segments, it can be used for other purposes. 
 On of these uses is to create a network tap, allowing the connection of other devices 
 that can sniff all the packets. Another use is in specialised protocols that require 
 that all packets arrive at all the devices on a network segment.
